@@ -54,6 +54,7 @@ const addText = () => {
     const stageBox = stage.value.container().getBoundingClientRect()
 
     const textarea = document.createElement('textarea')
+    textNode.hide()
 textarea.value = textNode.text()
 
 // Стили
@@ -217,10 +218,11 @@ textarea.focus()
       }
       searchInput.addEventListener('input', updateOptions)
       updateOptions()
-
+        
       // При выборе шрифта обновляем textarea
       selectEl.addEventListener('change', () => {
         textarea.style.fontFamily = selectEl.value
+        autosizeTextarea()
       })
 
       return container
@@ -258,6 +260,7 @@ textarea.focus()
   textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
   layer.value.draw()
   removeUI()
+  textNode.show()
 }
 
     const handleOutsideClick = (e) => {
