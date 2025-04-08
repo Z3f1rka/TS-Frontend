@@ -205,6 +205,7 @@ textarea.focus()
         filteredFonts.forEach(font => {
           const option = document.createElement('option')
           option.value = font
+          option.style.fontFamily = font
           option.textContent = font
           selectEl.appendChild(option)
         })
