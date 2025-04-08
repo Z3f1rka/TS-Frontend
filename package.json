@@ -16,6 +16,7 @@
     "@formkit/themes": "^1.6.9",
     "@formkit/vue": "^1.6.9",
     "axios": "^1.7.9",
+    "docx": "^9.3.0",
     "formkit": "^1.6.9",
     "is-number": "^7.0.0",
     "leaflet": "^1.9.4",
