@@ -29,10 +29,10 @@ const availableFonts = [
   'Jost',
   'Bitter',
   'Ponomar',
-  "Playfair Display",
-  "Great Vibes",
-  "Rubic Doodle Shadow",
-  "Alumni Sans"
+  'Playfair Display',
+  'Great Vibes',
+  'Rubic Doodle Shadow',
+  'Alumni Sans',
 ]
 
 const addText = () => {
@@ -44,7 +44,7 @@ const addText = () => {
     fontFamily: 'Arial',
     fill: 'black',
     wrap: 'word',
-    draggable: true
+    draggable: true,
   })
 
   layer.value.add(textNode)
@@ -55,61 +55,58 @@ const addText = () => {
 
     const textarea = document.createElement('textarea')
     textNode.hide()
-textarea.value = textNode.text()
+    textarea.value = textNode.text()
 
-// Стили
-Object.assign(textarea.style, {
-  position: 'absolute',
-  top: `${stageBox.top + textNode.y()}px`,
-  left: `${stageBox.left + textNode.x()}px`,
-  width: 'auto',
-minWidth: '50px',
-maxWidth: 'none',
-  fontSize: `${textNode.fontSize()}px`,
-  fontFamily: textNode.fontFamily(),
-  color: textNode.fill(),
-  border: '1px solid #ccc',
-  padding: '4px',
-  background: 'white',
-  outline: 'none',
-  resize: 'none',
-  zIndex: '1000',
-  lineHeight: textNode.lineHeight().toString(),
-  whiteSpace: 'nowrap',
-overflowX: 'hidden',
-})
-const nodeFontStyle = textNode.fontStyle() // например: 'bold italic'
-const isBold = nodeFontStyle.includes('bold')
-const isItalic = nodeFontStyle.includes('italic')
-const isUnderline = textNode.textDecoration().includes('underline')
+    // Стили
+    Object.assign(textarea.style, {
+      position: 'absolute',
+      top: `${stageBox.top + textNode.y()}px`,
+      left: `${stageBox.left + textNode.x()}px`,
+      width: 'auto',
+      minWidth: '50px',
+      maxWidth: 'none',
+      fontSize: `${textNode.fontSize()}px`,
+      fontFamily: textNode.fontFamily(),
+      color: textNode.fill(),
+      border: '1px solid #ccc',
+      padding: '4px',
+      background: 'white',
+      outline: 'none',
+      resize: 'none',
+      zIndex: '1000',
+      lineHeight: textNode.lineHeight().toString(),
+      whiteSpace: 'nowrap',
+      overflowX: 'hidden',
+    })
+    const nodeFontStyle = textNode.fontStyle() // например: 'bold italic'
+    const isBold = nodeFontStyle.includes('bold')
+    const isItalic = nodeFontStyle.includes('italic')
+    const isUnderline = textNode.textDecoration().includes('underline')
 
-textarea.style.fontWeight = isBold ? 'bold' : 'normal'
-textarea.style.fontStyle = isItalic ? 'italic' : 'normal'
-textarea.style.textDecoration = isUnderline ? 'underline' : 'none'
-document.body.appendChild(textarea)
+    textarea.style.fontWeight = isBold ? 'bold' : 'normal'
+    textarea.style.fontStyle = isItalic ? 'italic' : 'normal'
+    textarea.style.textDecoration = isUnderline ? 'underline' : 'none'
+    document.body.appendChild(textarea)
 
-// 🔁 Автоматическая подстройка высоты
-const autosizeTextarea = () => {
-  textarea.style.height = 'auto'
-  textarea.style.width = 'auto'
-    const paddingX = 8 // в px (left + right), соответствует padding: 4px
-  const paddingY = 8
+    // 🔁 Автоматическая подстройка высоты
+    const autosizeTextarea = () => {
+      textarea.style.height = 'auto'
+      textarea.style.width = 'auto'
+      const paddingX = 8 // в px (left + right), соответствует padding: 4px
+      const paddingY = 8
 
-  // Используем scroll размеры, чтобы определить нужные габариты
-  textarea.style.height = textarea.scrollHeight + paddingY + 'px'
-  textarea.style.width = textarea.scrollWidth + paddingX + 'px'
-  
-}
+      // Используем scroll размеры, чтобы определить нужные габариты
+      textarea.style.height = textarea.scrollHeight + paddingY + 'px'
+      textarea.style.width = textarea.scrollWidth + paddingX + 'px'
+    }
 
-// Первый запуск
-autosizeTextarea()
+    // Первый запуск
+    autosizeTextarea()
 
-// Подстройка при наборе текста
-textarea.addEventListener('input', autosizeTextarea)
+    // Подстройка при наборе текста
+    textarea.addEventListener('input', autosizeTextarea)
 
-
-
-textarea.focus()
+    textarea.focus()
 
     // 🎛 Панель стилей
     const toolbar = document.createElement('div')
@@ -126,7 +123,7 @@ textarea.focus()
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
     })
 
     // Input для размера шрифта
@@ -143,7 +140,7 @@ textarea.focus()
 
     toolbar.appendChild(document.createTextNode('Размер:'))
     toolbar.appendChild(fontSizeInput)
-     // Кнопка для жирного шрифта
+    // Кнопка для жирного шрифта
     const boldBtn = document.createElement('button')
     boldBtn.textContent = 'B'
     boldBtn.style.fontWeight = 'bold'
@@ -168,12 +165,13 @@ textarea.focus()
     underlineBtn.textContent = 'U'
     underlineBtn.style.textDecoration = 'underline'
     underlineBtn.addEventListener('click', () => {
-      textarea.style.textDecoration = textarea.style.textDecoration === 'underline' ? 'none' : 'underline'
+      textarea.style.textDecoration =
+        textarea.style.textDecoration === 'underline' ? 'none' : 'underline'
       autosizeTextarea()
     })
     toolbar.appendChild(underlineBtn)
 
- const createFontSelector = () => {
+    const createFontSelector = () => {
       const container = document.createElement('div')
       container.style.display = 'flex'
       container.style.flexDirection = 'column'
@@ -196,13 +194,11 @@ textarea.focus()
       selectEl.style.minWidth = '180px'
       container.appendChild(selectEl)
 
- const updateOptions = () => {
+      const updateOptions = () => {
         const filter = searchInput.value.toLowerCase()
         selectEl.innerHTML = ''
-        const filteredFonts = availableFonts.filter(font =>
-          font.toLowerCase().includes(filter)
-        )
-        filteredFonts.forEach(font => {
+        const filteredFonts = availableFonts.filter((font) => font.toLowerCase().includes(filter))
+        filteredFonts.forEach((font) => {
           const option = document.createElement('option')
           option.value = font
           option.style.fontFamily = font
@@ -212,14 +208,14 @@ textarea.focus()
         // Если в textarea уже установлен шрифт, пробуем его выбрать
         if (textarea.style.fontFamily) {
           const opt = Array.from(selectEl.options).find(
-            opt => opt.value === textarea.style.fontFamily
+            (opt) => opt.value === textarea.style.fontFamily,
           )
           if (opt) selectEl.value = opt.value
         }
       }
       searchInput.addEventListener('input', updateOptions)
       updateOptions()
-        
+
       // При выборе шрифта обновляем textarea
       selectEl.addEventListener('change', () => {
         textarea.style.fontFamily = selectEl.value
@@ -231,8 +227,128 @@ textarea.focus()
     const fontSelector = createFontSelector()
     toolbar.appendChild(fontSelector)
 
-    document.body.appendChild(toolbar)
+    var colorPopoverVisible = false
+
+    const getHexColor = (color) => {
+      const ctx = document.createElement('canvas').getContext('2d')
+      if (ctx) {
+        ctx.fillStyle = color
+        return ctx.fillStyle
+      }
+      return color // если не удалось, вернуть исходное значение
+    }
+
+    const updateColorBtnAppearance = (colorHex) => {
+      console.log(colorHex)
+      // Простейший расчёт яркости для определения цвета текста кнопки:
+      const r = parseInt(colorHex.substr(1, 2), 16)
+      const g = parseInt(colorHex.substr(3, 2), 16)
+      const b = parseInt(colorHex.substr(5, 2), 16)
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000
+      colorBtn.style.backgroundColor = colorHex
+      colorBtn.style.color = brightness < 128 ? 'white' : 'black'
+      colorBtn.textContent = 'Цвет'
+    }
+
+    const colorBtn = document.createElement('button')
+    colorBtn.style.padding = '4px 8px'
+    updateColorBtnAppearance(getHexColor(textNode.fill()) || '#000000') // инициализация по цвету текста
+    colorBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      colorPopoverVisible = !colorPopoverVisible
+      colorPopover.style.display = colorPopoverVisible ? 'block' : 'none'
+    })
+
+    toolbar.appendChild(colorBtn)
+
+    // Выпадающее меню выбора цвета (скрыто по умолчанию)
+    const colorPopover = document.createElement('div')
+    Object.assign(colorPopover.style, {
+      display: 'none',
+      position: 'absolute',
+      bottom: '60px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      padding: '10px',
+      background: '#fff',
+      border: '1px solid #ccc',
+      borderRadius: '8px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+      zIndex: '1002',
+    })
+
+    // Сетка образцов цветов
+    const sampleColors = [
+      '#000000',
+      '#ffffff',
+      '#ff0000',
+      '#00ff00',
+      '#0000ff',
+      '#ffff00',
+      '#ff00ff',
+      '#00ffff',
+      '#808080',
+      '#800000',
+    ]
+    const grid = document.createElement('div')
+    grid.style.display = 'grid'
+    grid.style.gridTemplateColumns = 'repeat(5, 30px)'
+    grid.style.gridGap = '5px'
+    sampleColors.forEach((col) => {
+      const swatch = document.createElement('div')
+      Object.assign(swatch.style, {
+        backgroundColor: col,
+        width: '30px',
+        height: '30px',
+        cursor: 'pointer',
+        border: '1px solid #ccc',
+      })
+      swatch.addEventListener('click', () => {
+        textarea.style.color = col
+        textNode.fill(col)
+        updateColorBtnAppearance(col)
+        hexInput.value = col
+        colorWheel.value = col
+      })
+      grid.appendChild(swatch)
+    })
+    colorPopover.appendChild(grid)
+
+    // Поле для ввода HEX кода
+    const hexInput = document.createElement('input')
+    hexInput.type = 'text'
+    hexInput.value = getHexColor(textNode.fill() || '#000000');
  
+    hexInput.placeholder = '#hexcode'
+    hexInput.style.marginTop = '8px'
+    hexInput.addEventListener('input', () => {
+      let val = hexInput.value
+      if (!val.startsWith('#')) val = '#' + val
+      if (val.length === 7) {
+        textarea.style.color = val
+        textNode.fill(val)
+        updateColorBtnAppearance(val)
+        colorWheel.value = val
+      }
+    })
+    colorPopover.appendChild(hexInput)
+
+    // Color wheel (инпут типа "color")
+    const colorWheel = document.createElement('input')
+    colorWheel.type = 'color'
+    colorWheel.style.marginTop = '8px'
+    colorWheel.addEventListener('input', () => {
+      const val = colorWheel.value
+      textarea.style.color = val
+      textNode.fill(val)
+      updateColorBtnAppearance(val)
+      hexInput.value = val
+    })
+    colorPopover.appendChild(colorWheel)
+    toolbar.appendChild(colorPopover)
+
+    document.body.appendChild(toolbar) // Конец тулбара --------------------------------------------
+
     const removeUI = () => {
       document.body.removeChild(textarea)
       document.body.removeChild(toolbar)
@@ -240,43 +356,40 @@ textarea.focus()
     }
 
     const applyChanges = () => {
-  textNode.text(textarea.value)
-  textNode.fontSize(parseInt(fontSizeInput.value))
-  
-  // Определяем комбинированный стиль для fontStyle
-  const isBold = textarea.style.fontWeight === 'bold'
-  const isItalic = textarea.style.fontStyle === 'italic'
-  let fontStyle = 'normal'
-  if (isBold && isItalic) fontStyle = 'bold italic'
-  else if (isBold) fontStyle = 'bold'
-  else if (isItalic) fontStyle = 'italic'
-  textNode.fontStyle(fontStyle)
-  
-  // Применяем подчёркивание
-  textNode.textDecoration(
-    textarea.style.textDecoration.includes('underline') ? 'underline' : ''
-  )
-  
-  // Сохраняем выбранный шрифт
-  textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
-  layer.value.draw()
-  removeUI()
-  textNode.show()
-}
+      textNode.text(textarea.value)
+      textNode.fontSize(parseInt(fontSizeInput.value))
+
+      // Определяем комбинированный стиль для fontStyle
+      const isBold = textarea.style.fontWeight === 'bold'
+      const isItalic = textarea.style.fontStyle === 'italic'
+      let fontStyle = 'normal'
+      if (isBold && isItalic) fontStyle = 'bold italic'
+      else if (isBold) fontStyle = 'bold'
+      else if (isItalic) fontStyle = 'italic'
+      textNode.fontStyle(fontStyle)
+
+      // Применяем подчёркивание
+      textNode.textDecoration(
+        textarea.style.textDecoration.includes('underline') ? 'underline' : '',
+      )
+
+      // Сохраняем выбранный шрифт
+      textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
+      layer.value.draw()
+      removeUI()
+      textNode.show()
+    }
 
     const handleOutsideClick = (e) => {
-      if (
-        e.target !== textarea &&
-        !toolbar.contains(e.target)
-      ) {
+      if (e.target !== textarea && !toolbar.contains(e.target)) {
         applyChanges()
       }
     }
 
     fontSizeInput.addEventListener('input', () => {
-  textarea.style.fontSize = `${fontSizeInput.value}px`
-  autosizeTextarea()
-})
+      textarea.style.fontSize = `${fontSizeInput.value}px`
+      autosizeTextarea()
+    })
 
     textarea.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -293,7 +406,6 @@ textarea.focus()
   })
 }
 
-
 const addImage = () => {
   const imageObj = new Image()
   imageObj.src = 'https://konvajs.org/assets/yoda.jpg'
@@ -304,7 +416,7 @@ const addImage = () => {
       image: imageObj,
       width: 150,
       height: 150,
-      draggable: true
+      draggable: true,
     })
     layer.value.add(img)
     layer.value.draw()
@@ -319,7 +431,7 @@ onMounted(() => {
     container: stageContainer.value,
     width,
     height,
-    draggable: false
+    draggable: false,
   })
 
   layer.value = new Konva.Layer()
@@ -332,7 +444,7 @@ onMounted(() => {
     height,
     fill: '#fff',
     stroke: '#000',
-    strokeWidth: 1
+    strokeWidth: 1,
   })
 
   layer.value.add(background)
@@ -371,6 +483,6 @@ button.active {
 /* Контейнер для Konva Stage */
 .stage-container {
   background-color: white;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 </style>
