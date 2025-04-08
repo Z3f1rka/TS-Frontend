@@ -21,6 +21,20 @@ const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
 
+const availableFonts = [
+  'Roboto',
+  'Oswald',
+  'Montserrat',
+  'Pacifico',
+  'Jost',
+  'Bitter',
+  'Ponomar',
+  "Playfair Display",
+  "Great Vibes",
+  "Rubic Doodle Shadow",
+  "Alumni Sans"
+]
+
 const addText = () => {
   const textNode = new Konva.Text({
     x: 50,
@@ -157,6 +171,63 @@ textarea.focus()
       autosizeTextarea()
     })
     toolbar.appendChild(underlineBtn)
+
+ const createFontSelector = () => {
+      const container = document.createElement('div')
+      container.style.display = 'flex'
+      container.style.flexDirection = 'column'
+      container.style.maxHeight = '100px'
+      container.style.overflowY = 'auto'
+      container.style.padding = '4px'
+      container.style.border = '1px solid #ccc'
+      container.style.background = 'white'
+
+      // Поле для поиска шрифта
+      const searchInput = document.createElement('input')
+      searchInput.type = 'text'
+      searchInput.placeholder = 'Поиск шрифта'
+      searchInput.style.marginBottom = '4px'
+      container.appendChild(searchInput)
+
+      // Выпадающий список
+      const selectEl = document.createElement('select')
+      selectEl.size = 5 // показывать несколько вариантов
+      selectEl.style.minWidth = '180px'
+      container.appendChild(selectEl)
+
+ const updateOptions = () => {
+        const filter = searchInput.value.toLowerCase()
+        selectEl.innerHTML = ''
+        const filteredFonts = availableFonts.filter(font =>
+          font.toLowerCase().includes(filter)
+        )
+        filteredFonts.forEach(font => {
+          const option = document.createElement('option')
+          option.value = font
+          option.textContent = font
+          selectEl.appendChild(option)
+        })
+        // Если в textarea уже установлен шрифт, пробуем его выбрать
+        if (textarea.style.fontFamily) {
+          const opt = Array.from(selectEl.options).find(
+            opt => opt.value === textarea.style.fontFamily
+          )
+          if (opt) selectEl.value = opt.value
+        }
+      }
+      searchInput.addEventListener('input', updateOptions)
+      updateOptions()
+
+      // При выборе шрифта обновляем textarea
+      selectEl.addEventListener('change', () => {
+        textarea.style.fontFamily = selectEl.value
+      })
+
+      return container
+    }
+    const fontSelector = createFontSelector()
+    toolbar.appendChild(fontSelector)
+
     document.body.appendChild(toolbar)
  
     const removeUI = () => {
@@ -168,32 +239,32 @@ textarea.focus()
     const applyChanges = () => {
   textNode.text(textarea.value)
   textNode.fontSize(parseInt(fontSizeInput.value))
-
-  // Считываем стили из textarea
+  
+  // Определяем комбинированный стиль для fontStyle
   const isBold = textarea.style.fontWeight === 'bold'
   const isItalic = textarea.style.fontStyle === 'italic'
-  const isUnderline = textarea.style.textDecoration.includes('underline')
-    
-  // Преобразуем в стили Konva
   let fontStyle = 'normal'
   if (isBold && isItalic) fontStyle = 'bold italic'
   else if (isBold) fontStyle = 'bold'
   else if (isItalic) fontStyle = 'italic'
   textNode.fontStyle(fontStyle)
-
-  textNode.textDecoration(isUnderline ? 'underline' : '')
-
+  
+  // Применяем подчёркивание
+  textNode.textDecoration(
+    textarea.style.textDecoration.includes('underline') ? 'underline' : ''
+  )
+  
+  // Сохраняем выбранный шрифт
+  textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
   layer.value.draw()
   removeUI()
 }
 
     const handleOutsideClick = (e) => {
-      if (e.target !== textarea &&
-          e.target !== fontSizeInput &&
-          e.target !== boldBtn &&
-          e.target !== italicBtn &&
-          e.target !== underlineBtn && 
-          e.target !== toolbar) {
+      if (
+        e.target !== textarea &&
+        !toolbar.contains(e.target)
+      ) {
         applyChanges()
       }
     }
