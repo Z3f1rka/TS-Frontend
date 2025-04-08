@@ -18,6 +18,9 @@ async function f() {
     if (data == undefined) {
       throw undefined
     }
+    if (data === 1) {
+      auth.value = false
+    }
   } catch (err) {
     console.log(err)
     router.push({ path: '/' })
@@ -55,10 +58,7 @@ onMounted(() => {
       data1.scroll
         ? { background: 'rgba(0, 0, 0, 0)' }
         : {
-            '--gradient-color-start': '#202C3D',
-            '--gradient-color-end': '#222E3F',
-            background:
-              'linear-gradient(to bottom, var(--gradient-color-start), var(--gradient-color-end))',
+            background: 'oklch(98.4% 0.003 247.858)',
           }
     "
   >
@@ -69,12 +69,12 @@ onMounted(() => {
       >
         <router-link :to="{ path: '/' }">
           <div class="inline-flex items-center" style="padding-top: 1vh; padding-bottom: 1vh">
-            <img src="/icon.svg" class="cursor-pointer" style="height: 3vw" />
+            <img src="/logo.webp" class="cursor-pointer" style="height: 3vw" />
           </div>
         </router-link>
       </header>
       <div
-        class="absolute modal bg-slate-100"
+        class="absolute modal bg-slate-50"
         style="right: 0"
         :class="{ EnterDropRight: isOpen, LeaveDropRight: !isOpen }"
       >
@@ -108,9 +108,19 @@ onMounted(() => {
           @click="((isOpen = !isOpen), (Active = true))"
           v-if="clean"
         >
-          <img src="/arrow.svg" style="width: 1.2vw; margin-right: 0.7vw; margin-left: 1vw" />
-          <img v-if="user.avatar" :src="user.avatar" class="rounded-full" style="width: 3.5vw" />
-          <img v-if="!user.avatar" src="/avatar.jpg" class="rounded-full" style="width: 3.5vw" />
+          <img src="/arrow.png" style="width: 1.2vw; margin-right: 0.7vw; margin-left: 1vw" />
+          <img
+            v-if="user.avatar"
+            :src="user.avatar"
+            class="rounded-full shadow-lg"
+            style="width: 3.5vw; height: 3.5vw"
+          />
+          <img
+            v-if="!user.avatar"
+            src="/avatar.jpg"
+            class="rounded-full shadow-lg"
+            style="width: 3.5vw; height: 3.5vw"
+          />
         </div>
       </div>
       <div
@@ -120,14 +130,14 @@ onMounted(() => {
       >
         <router-link class="col-span-2" :to="{ path: '/register' }"
           ><div
-            class="items-center rounded-lg text-center"
+            class="items-center rounded-lg text-center shadow-lg"
             style="
               padding-left: 1vw;
               padding-right: 1vw;
               padding-top: 0.7vw;
               padding-bottom: 0.7vw;
               font-size: 1.1vw;
-              background-color: #c4d9d2;
+              background-color: rgba(255, 255, 255, 0.5);
             "
           >
             Регистрация
@@ -135,14 +145,15 @@ onMounted(() => {
         </router-link>
         <router-link :to="{ path: '/login' }">
           <div
-            class="items-center rounded-lg text-center"
+            class="items-center rounded-lg text-center shadow-lg"
             style="
               padding-left: 1vw;
               padding-right: 1vw;
               padding-top: 0.7vw;
               padding-bottom: 0.7vw;
               font-size: 1.1vw;
-              background-color: #c4d9d2;
+              background-color: #007dfe;
+              color: white;
             "
           >
             Вход

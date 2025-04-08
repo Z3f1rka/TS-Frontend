@@ -35,18 +35,21 @@ api_photo.interceptors.response.use(
       } else {
         originalRequest._retry = true
 
-        const refresh = localStorage.getItem('refresh_token')
+        let refresh = localStorage.getItem('refresh_token')
 
         try {
-          const response = await api_photo.post('auth/refresh', {
-            headers: { 'jwt-refresh': refresh },
-          })
-          const newAccessToken = response.data.access
+          if (!(refresh === null)) {
+            const response = await api_photo.get('auth/refresh', {
+              headers: { 'jwt-refresh': refresh },
+            })
+            const newAccessToken = response.data.access
 
-          localStorage.setItem('token', newAccessToken)
-          originalRequest.headers['authorization'] = `Bearer ${newAccessToken}`
+            localStorage.setItem('token', newAccessToken)
+            originalRequest.headers['authorization'] = `Bearer ${newAccessToken}`
 
-          return api_photo(originalRequest)
+            return api_photo(originalRequest)
+          }
+          return 1
         } catch (refreshError) {}
       }
     }

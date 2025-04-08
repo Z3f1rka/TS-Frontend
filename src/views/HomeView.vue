@@ -11,7 +11,7 @@ const state = reactive({
   array: [],
 })
 
-const gradientStartColor = computed(() => '#080E1A')
+const gradientStartColor = computed(() => 'oklch(96.8% 0.007 247.896)')
 
 async function loadRoutes() {
   try {
@@ -68,37 +68,19 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen flex flex-col">
     <div class="relative h-screen">
-      <img src="/background3.png" class="w-full h-full object-cover blur-bgimage" />
+      <img src="/background3.jpg" class="w-full object-cover blur-bgimage" />
       <div class="absolute top-0 left-0 w-full">
         <Header class="nav" :scroll="scroll" />
-        <div style="margin-top: max(55px, 5vw); margin-left: 0.3vw; margin-right: 0.1vw">
-          <h1 class="main" style="color: #fcf3e7; font-size: 6vw; margin-left: 0.5vw">
-            Ваш путь начинается здесь
+        <div style="margin-top: max(55px, 15vw); margin-left: 3vw; margin-right: 45vw">
+          <h1
+            class="main"
+            style="color: oklch(27.9% 0.041 260.031); font-size: 6vw; margin-left: 0.5vw"
+          >
+            Верстка для всех
           </h1>
-          <h2 style="color: #fcf3e7; font-size: 3vw; margin-left: 1vw">
-            Cоздавай и иследуй новые маршруты вместе с GripTrip!
+          <h2 style="color: oklch(27.9% 0.041 260.031); font-size: 3vw; margin-left: 1vw">
+            от идеи до готовой книги в несколько кликов
           </h2>
-          <div class="flex justify-center" style="margin-top: 14vw">
-            <div class="relative" style="width: 50vw">
-              <input
-                placeholder="Поиск"
-                v-model="state.search"
-                style="font-size: 2.5vw; padding-left: 2vw; padding-top: 1vw; padding-bottom: 1vw"
-                class="w-full rounded-lg bg-zinc-100 focus:outline-none"
-              />
-              <div
-                class="absolute inset-y-0 flex items-center pointer-events-none justify-center"
-                style="right: 1.3vw"
-              >
-                <img
-                  src="/search.png"
-                  alt="Поиск"
-                  class="text-gray-400"
-                  style="width: 3vw; height: 3vw"
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -106,40 +88,36 @@ onMounted(async () => {
       class="flex-grow bg-gradient-to-b"
       :style="{
         '--gradient-color-start': gradientStartColor,
-        '--gradient-color-end': '#202C3D',
+        '--gradient-color-end': 'white',
         background:
           'linear-gradient(to bottom, var(--gradient-color-start), var(--gradient-color-end))',
       }"
+    ></div>
+    <footer
+      class="bg-slate-800 text-gray-300"
+      style="padding-top: 6vw; padding-bottom: 4vw; padding-left: 6vw; padding-right: 5vw"
     >
-      <div class="text-white inline-grid grid-cols-2" style="margin-right: 1vw; margin-left: 0.3vw">
-        <h1 v-for="item in state.array" :key="item.id">
-          <router-link :to="{ path: '/card', query: { id: item.main_route_id } }">
-            <Card :card="item" style="border-width: 1px; border-color: white"></Card>
-          </router-link>
-        </h1>
-      </div>
-      <div class="text-center">
-        <p style="font-size: 3vw; color: #fcf3e7; margin-top: 3vw">Маршрутов больше нет</p>
+      <div class="container mx-auto inline-flex md:flex-row justify-between items-center">
+        <div class="mb-0" style="margin-bottom: 1vw">
+          <h3 class="font-semibold" style="font-size: 1.2vw; margin-bottom: 0.5vw">Контакты</h3>
+          <p style="font-size: 0.8vw">Email: 89450.miha@gmail.com</p>
+          <p style="font-size: 0.8vw">Телефон: +7 (908) 490-30-27</p>
+          <p style="font-size: 0.8vw">GitHub: https://github.com/Z3f1rka/TSMain</p>
+        </div>
 
-        <div
-          class="inline-flex items-center cursor-pointer active:scale-95"
-          @click="NewRoute()"
-          style="
-            padding-left: 2vw;
-            padding-right: 2vw;
-            padding-top: 0.8vw;
-            padding-bottom: 0.8vw;
-            font-size: 2.5vw;
-            background-color: #c4d9d2;
-            margin-bottom: 5vw;
-            margin-top: 2vw;
-            transition: transform 0.1s ease;
-          "
-        >
-          Создать маршрут
+        <div>
+          <div class="mt-0 flex text-center" style="display: flex; space-x: 0.6vw">
+            <a href="#" class="hover:text-gray-100" style="font-size: 1.4vw; margin-bottom: 0.2vw"
+              >Задать вопрос</a
+            ><img
+              src="/arrow1.svg"
+              style="width: 1.2vw; height: 1.2vw; margin-left: 0.8vw"
+              class="self-center"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </footer>
   </div>
 </template>
 

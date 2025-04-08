@@ -6,7 +6,9 @@ let api = import.meta.env.VITE_FILES_API_URL
 
 let data = defineProps({
   card: Object,
+  size: String,
 })
+
 const isHovered = ref(false)
 
 const handleMouseOver = () => {
@@ -20,14 +22,14 @@ const handleMouseLeave = () => {
 <template>
   <div
     style="
-      width: 45vw;
+      width: 20vw;
       height: 25vw;
       margin-left: 2vw;
-      margin-right: 2vw;
       margin-top: 1.5vw;
       transition: transform 0.1s ease;
     "
-    class="relative justify-center cursor-pointer overflow-hidden z-10 select-none active:scale-95"
+    class="relative justify-center cursor-pointer overflow-hidden z-10 select-none active:scale-95 shadow-lg"
+    :style="data.size === 1 ? { width: '20vw', height: '25vw' } : { width: '12vw', height: '17vw' }"
     @mouseover="handleMouseOver"
     @mouseleave="handleMouseLeave"
   >
@@ -36,24 +38,38 @@ const handleMouseLeave = () => {
       :src="api + 'files/download/' + data.card.photo"
       class="w-full h-full object-cover"
     />
-    <img v-else src="/background3.png" class="w-full h-full object-cover" />
-    <div
-      class="absolute bottom-0 w-full content-center inline-flex desc"
-      :class="{ 'desc-hovered': isHovered }"
-    >
+    <div v-if="data.size != 3">
+      <img src="/background3.png" class="w-full h-full object-cover" />
+    </div>
+    <div v-else>
+      <img src="/what.png" class="w-full h-full object-cover" />
+    </div>
+    <div v-if="data.size === 2" class="absolute bottom-0 w-full content-center desc">
       <h1
-        v-if="!isHovered"
-        style="font-size: 2vw; margin-left: 1vw; margin-right: 2vw; transition: opacity 2s ease"
+        style="font-size: 0.8vw; margin-left: 1vw; margin-right: 2vw; transition: opacity 2s ease"
         class="content-center truncate"
       >
         {{ data.card.title }}
       </h1>
+      <img
+        v-if="data.card.status === 'public' || data.card.status == undefined"
+        src="/arrow1.svg"
+        style="width: 1.6vw; margin-right: 2vw; margin-top: 1.3vw"
+        class="absolute right-0"
+      />
+      <img
+        v-else
+        src="/cross.png"
+        style="width: 2vw; margin-right: 2vw; margin-top: 1.3vw"
+        class="absolute right-0"
+      />
+    </div>
+    <div v-if="data.size === 1" class="absolute bottom-0 w-full content-center desc">
       <h1
-        v-if="isHovered"
-        style="font-size: 2vw; margin-left: 1vw; margin-right: 2vw; transition: opacity 2s ease"
-        class="content-center text-ellipsis"
+        style="font-size: 1vw; margin-left: 1vw; margin-right: 2vw; transition: opacity 2s ease"
+        class="content-center truncate"
       >
-        {{ data.card.description }}
+        {{ data.card.title }}
       </h1>
       <img
         v-if="data.card.status === 'public' || data.card.status == undefined"
@@ -73,18 +89,10 @@ const handleMouseLeave = () => {
 <style scoped>
 .desc {
   transition: all 0.6s ease;
-  height: 6vw;
+  height: 4vw;
   background-color: rgba(15, 15, 15, 0.6);
   padding: 1vw;
   color: #fffaf4;
-}
-
-.desc-hovered {
-  height: 100%;
-  z-index: 1;
-  background-color: #fffaf4;
-  align-items: baseline;
-  color: black;
 }
 .to-bottom {
   background-position: 50% 0%;
