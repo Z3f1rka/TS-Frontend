@@ -63,7 +63,14 @@ maxWidth: 'none',
   whiteSpace: 'nowrap',
 overflowX: 'hidden',
 })
+const nodeFontStyle = textNode.fontStyle() // например: 'bold italic'
+const isBold = nodeFontStyle.includes('bold')
+const isItalic = nodeFontStyle.includes('italic')
+const isUnderline = textNode.textDecoration().includes('underline')
 
+textarea.style.fontWeight = isBold ? 'bold' : 'normal'
+textarea.style.fontStyle = isItalic ? 'italic' : 'normal'
+textarea.style.textDecoration = isUnderline ? 'underline' : 'none'
 document.body.appendChild(textarea)
 
 // 🔁 Автоматическая подстройка высоты
@@ -91,18 +98,21 @@ textarea.focus()
 
     // 🎛 Панель стилей
     const toolbar = document.createElement('div')
-    toolbar.style.position = 'absolute'
-    toolbar.style.left = `${stageBox.left + textNode.x()}px`
-    toolbar.style.top = `${stageBox.top + textNode.y() - 40}px`
-    toolbar.style.background = '#f0f0f0'
-    toolbar.style.border = '1px solid #ccc'
-    toolbar.style.padding = '5px 10px'
-    toolbar.style.borderRadius = '6px'
-    toolbar.style.zIndex = '1001'
-    toolbar.style.display = 'flex'
-    toolbar.style.gap = '8px'
-    toolbar.style.alignItems = 'center'
-    toolbar.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)'
+    Object.assign(toolbar.style, {
+      position: 'fixed',
+      bottom: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#f0f0f0',
+      border: '1px solid #ccc',
+      padding: '8px 12px',
+      borderRadius: '8px',
+      zIndex: '1001',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+    })
 
     // Input для размера шрифта
     const fontSizeInput = document.createElement('input')
@@ -124,6 +134,7 @@ textarea.focus()
     boldBtn.style.fontWeight = 'bold'
     boldBtn.addEventListener('click', () => {
       textarea.style.fontWeight = textarea.style.fontWeight === 'bold' ? 'normal' : 'bold'
+      autosizeTextarea()
     })
     toolbar.appendChild(boldBtn)
 
@@ -133,6 +144,7 @@ textarea.focus()
     italicBtn.style.fontStyle = 'italic'
     italicBtn.addEventListener('click', () => {
       textarea.style.fontStyle = textarea.style.fontStyle === 'italic' ? 'normal' : 'italic'
+      autosizeTextarea()
     })
     toolbar.appendChild(italicBtn)
 
@@ -142,10 +154,11 @@ textarea.focus()
     underlineBtn.style.textDecoration = 'underline'
     underlineBtn.addEventListener('click', () => {
       textarea.style.textDecoration = textarea.style.textDecoration === 'underline' ? 'none' : 'underline'
+      autosizeTextarea()
     })
     toolbar.appendChild(underlineBtn)
     document.body.appendChild(toolbar)
-
+ 
     const removeUI = () => {
       document.body.removeChild(textarea)
       document.body.removeChild(toolbar)
@@ -153,11 +166,26 @@ textarea.focus()
     }
 
     const applyChanges = () => {
-      textNode.text(textarea.value)
-      textNode.fontSize(parseInt(fontSizeInput.value))
-      layer.value.draw()
-      removeUI()
-    }
+  textNode.text(textarea.value)
+  textNode.fontSize(parseInt(fontSizeInput.value))
+
+  // Считываем стили из textarea
+  const isBold = textarea.style.fontWeight === 'bold'
+  const isItalic = textarea.style.fontStyle === 'italic'
+  const isUnderline = textarea.style.textDecoration.includes('underline')
+    
+  // Преобразуем в стили Konva
+  let fontStyle = 'normal'
+  if (isBold && isItalic) fontStyle = 'bold italic'
+  else if (isBold) fontStyle = 'bold'
+  else if (isItalic) fontStyle = 'italic'
+  textNode.fontStyle(fontStyle)
+
+  textNode.textDecoration(isUnderline ? 'underline' : '')
+
+  layer.value.draw()
+  removeUI()
+}
 
     const handleOutsideClick = (e) => {
       if (e.target !== textarea &&
@@ -238,6 +266,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+button.active {
+  background-color: #ccc;
+}
+
 .editor-container {
   display: flex;
   height: 100vh;
