@@ -6,6 +6,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import MyRoutesView from '@/views/MyRoutesView.vue'
 import ModerView from '@/views/ModerView.vue'
 import FavoritesView from '@/views/FavoritesView.vue'
+import Pdf from '@/views/Pdf.vue'
 
 
 const router = createRouter({
@@ -41,6 +42,11 @@ const router = createRouter({
       path: '/favorites',
       name: 'favorites',
       component: FavoritesView,
+    },
+    {
+      path: '/pdf',
+      name: 'pdf',
+      component: Pdf,
     },
   ],
 })
