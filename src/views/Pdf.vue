@@ -64,7 +64,6 @@ const saveScene = async () => {
     })
 
     const imgData = canvas.toDataURL('image/png')
-
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'px',
@@ -698,8 +697,6 @@ const addImage = async () => {
           x: 100,
           y: 100,
           image: imageObj,
-          width: 150,
-          height: 150,
           draggable: true,
         })
         layer.value.add(img)
