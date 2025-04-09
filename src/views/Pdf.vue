@@ -1,16 +1,34 @@
 <template>
-  <div class="editor-container">
-    <!-- Панель инструментов слева -->
-    <div class="toolbar">
-      <button @click="addText">Добавить текст</button>
-      <button @click="addImage">Добавить изображение</button>
-      <button @click="saveScene">Сохранить</button>
-      <button @click="loadScene(resData)">Загрузить</button>
+  <div class="editor-container flex flex-col h-screen">
+    <!-- Контейнер листа, он занимает всё доступное пространство, с нижним отступом чтобы не перекрывать панель инструментов -->
+    <div class="sheet-container flex-grow flex justify-center items-center bg-gray-200 pb-32">
+      <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
     </div>
 
-    <!-- Рабочее поле с имитацией размера A4 (595x842px, можно подогнать под нужный масштаб) -->
-    <div class="canvas-container">
-      <div ref="stageContainer" class="stage-container"></div>
+    <!-- Нижняя панель инструментов -->
+    <div class="fixed bottom-3 left-0 right-0 flex justify-center">
+      <div class="toolbar flex bg-white rounded-t-xl rounded-b-xl p-4 space-x-4 shadow-md">
+        <button
+          class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+          @click="addText()"
+        >
+          Добавить текст
+        </button>
+        <div class="border-r border-gray-300"></div>
+        <button
+          class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+          @click="addImage"
+        >
+          Добавить изображение
+        </button>
+        <div class="border-r border-gray-300"></div>
+        <button
+          class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+          @click="saveScene"
+        >
+          Сохранить
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -22,22 +40,22 @@ import Konva from 'konva'
 const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
-var resData = {elements: []}
+var resData = { elements: [] }
 
 const saveScene = () => {
   const sceneData = JSON.parse(stage.value.toJSON())
   resData.elements = []
-  sceneData.children[0].children.forEach(element => {
-    if (element.className == "Text"){
+  sceneData.children[0].children.forEach((element) => {
+    if (element.className == 'Text') {
       resData.elements.push(element)
-    } 
-  });
+    }
+  })
 }
 
 const loadScene = (sceneData) => {
-  sceneData.elements.forEach(element =>{
-  console.log(element)
-  addText({
+  sceneData.elements.forEach((element) => {
+    console.log(element)
+    addText({
       text: element.attrs.text,
       x: element.attrs.x,
       y: element.attrs.y,
@@ -47,12 +65,12 @@ const loadScene = (sceneData) => {
       id: element.attrs.id || undefined,
       draggable: true,
       fontFamily: element.attrs.fontFamily,
-      fontStyle: element.attrs.fontStyle
-    });
-  });
+      fontStyle: element.attrs.fontStyle,
+    })
+  })
 
-  layer.value.batchDraw();
-  }
+  layer.value.batchDraw()
+}
 
 const availableFonts = [
   'Roboto',
@@ -69,25 +87,24 @@ const availableFonts = [
 ]
 
 const addText = (data = {}) => {
-  const defaultText = 'Новый текст';
-  const stageCenterX = stage.value.width() / 2;
-  const stageCenterY = stage.value.height() / 2;
-
+  const defaultText = 'Новый текст'
+  const stageCenterX = stage.value.attrs.width / 2
+  const stageCenterY = stage.value.attrs.height / 2
   const textNode = new Konva.Text({
     text: data.text || defaultText,
     x: data.x || stageCenterX,
     y: data.y || stageCenterY,
     rotation: data.rotation || 0,
     fontSize: data.fontSize || 24,
-    fill: data.fill || '#000000',
+    fill: data.fill || 'black',
     id: data.id || `text-${Date.now()}`,
     draggable: true,
-    fontFamily: data.fontFamily || "Arial",
-    fontStyle: data.fontStyle || ""
-  });
-
+    fontFamily: data.fontFamily || 'Arial',
+    fontStyle: data.fontStyle || '',
+  })
   layer.value.add(textNode)
   layer.value.draw()
+  console.log(textNode)
 
   // Создаем рамку для выделения и ручку вращения
   const border = new Konva.Rect({
@@ -218,15 +235,17 @@ const addText = (data = {}) => {
       bottom: '20px',
       left: '50%',
       transform: 'translateX(-50%)',
-      background: '#f0f0f0',
-      border: '1px solid #ccc',
-      padding: '8px 12px',
-      borderRadius: '8px',
+      background: 'rgba(255, 255, 255, 0.95)',
+      border: '1px solid #e5e7eb', // border-gray-200
+      padding: '12px 16px',
+      borderRadius: '16px',
       zIndex: '1001',
       display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+      alignItems: 'flex-start',
+      gap: '24px',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+      backdropFilter: 'blur(6px)',
+      fontFamily: 'sans-serif',
     })
 
     // Input для размера шрифта
@@ -241,7 +260,6 @@ const addText = (data = {}) => {
       textarea.style.fontSize = `${fontSizeInput.value}px`
     })
 
-    toolbar.appendChild(document.createTextNode('Размер:'))
     toolbar.appendChild(fontSizeInput)
     // Кнопка для жирного шрифта
     const boldBtn = document.createElement('button')
@@ -354,6 +372,8 @@ const addText = (data = {}) => {
 
     const colorBtn = document.createElement('button')
     colorBtn.style.padding = '4px 8px'
+    colorBtn.style.width = '100%'
+    colorBtn.classList.add("rounded-md")
     updateColorBtnAppearance(getHexColor(textNode.fill()) || '#000000') // инициализация по цвету текста
     colorBtn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -448,6 +468,83 @@ const addText = (data = {}) => {
     })
     colorPopover.appendChild(colorWheel)
     toolbar.appendChild(colorPopover)
+
+    const leftSection = document.createElement('div')
+    leftSection.style.display = 'flex'
+    leftSection.style.flexDirection = 'column'
+    leftSection.style.gap = '8px'
+
+    const rightSection = document.createElement('div')
+rightSection.style.display = 'flex'
+rightSection.style.flexDirection = 'column'
+rightSection.style.alignItems = 'flex-end'
+
+    // Ряд 1: Изменение размера шрифта
+    const row1 = document.createElement('div')
+    row1.style.display = 'flex'
+    row1.style.alignItems = 'center'
+    row1.style.gap = '8px'
+    row1.appendChild(document.createTextNode('Размер:'))
+    row1.appendChild(fontSizeInput)
+
+    // Ряд 2: Кнопки изменения стиля (жирный, курсив, подчёркивание)
+    const row2 = document.createElement('div')
+    row2.style.display = 'flex'
+    row2.style.alignItems = 'center'
+    row2.style.justifyContent = 'space-between'
+    row2.appendChild(boldBtn)
+    row2.appendChild(italicBtn)
+    row2.appendChild(underlineBtn)
+
+    // Ряд 3: Кнопка изменения цвета
+    const row3 = document.createElement('div')
+    row3.style.display = 'flex'
+    row3.style.alignItems = 'center'
+    row3.style.gap = '8px'
+    row3.appendChild(colorBtn)
+
+    // Добавляем ряды в левую секцию
+    leftSection.appendChild(row1)
+    leftSection.appendChild(row2)
+    leftSection.appendChild(row3)
+
+
+    // Font selector — в правую часть
+    rightSection.appendChild(fontSelector)
+
+    // Добавляем обе секции в toolbar
+    toolbar.appendChild(leftSection)
+    toolbar.appendChild(rightSection)
+
+    const styleButton = (btn) => {
+      Object.assign(btn.style, {
+        padding: '6px 10px',
+        fontSize: '14px',
+        borderRadius: '8px',
+        border: '1px solid #d1d5db', // gray-300
+        background: 'white',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      })
+      btn.addEventListener('mouseenter', () => {
+        btn.style.background = '#f3f4f6' // gray-100
+      })
+      btn.addEventListener('mouseleave', () => {
+        btn.style.background = 'white'
+      })
+    }
+
+    styleButton(boldBtn)
+    styleButton(italicBtn)
+    styleButton(underlineBtn)
+
+    Object.assign(fontSizeInput.style, {
+      width: '60px',
+      padding: '4px 6px',
+      border: '1px solid #d1d5db',
+      borderRadius: '8px',
+      fontSize: '14px',
+    })
 
     document.body.appendChild(toolbar) // Конец тулбара --------------------------------------------
 
@@ -580,38 +677,3 @@ onMounted(() => {
   layer.value.draw()
 })
 </script>
-
-<style scoped>
-button.active {
-  background-color: #ccc;
-}
-
-.editor-container {
-  display: flex;
-  height: 100vh;
-}
-
-/* Панель инструментов слева */
-.toolbar {
-  width: 200px;
-  background-color: #f5f5f5;
-  border-right: 1px solid #ddd;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-/* Рабочая область */
-.canvas-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #e2e2e2;
-}
-
-/* Контейнер для Konva Stage */
-.stage-container {
-  background-color: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-}
-</style>
