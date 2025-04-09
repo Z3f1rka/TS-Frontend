@@ -15,7 +15,6 @@
     "@formkit/icons": "^1.6.9",
     "@formkit/themes": "^1.6.9",
     "@formkit/vue": "^1.6.9",
-    "@nutrient-sdk/viewer": "^1.1.0",
     "axios": "^1.7.9",
     "formkit": "^1.6.9",
     "html2canvas": "^1.4.1",

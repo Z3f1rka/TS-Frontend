@@ -7,9 +7,7 @@ import HistoryView from '@/views/HistoryView.vue'
 import MyRoutesView from '@/views/MyRoutesView.vue'
 import ModerView from '@/views/ModerView.vue'
 import FavoritesView from '@/views/FavoritesView.vue'
-import PDFView from '@/views/PDFView.vue'
 import FeedbackView from '@/views/FeedbackView.vue'
-import test from '@/views/test.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,19 +44,9 @@ const router = createRouter({
       component: FavoritesView,
     },
     {
-      path: '/pdf',
-      name: 'pdf',
-      component: PDFView,
-    },
-    {
       path: '/feedback',
       name: 'feedback',
       component: FeedbackView,
-    },
-    {
-      path: '/test',
-      name: 'test',
-      component: test,
     },
   ],
 })
