@@ -4,6 +4,8 @@
     <div class="toolbar">
       <button @click="addText">Добавить текст</button>
       <button @click="addImage">Добавить изображение</button>
+      <button @click="saveScene">Сохранить</button>
+      <button @click="loadScene(resData)">Загрузить</button>
     </div>
 
     <!-- Рабочее поле с имитацией размера A4 (595x842px, можно подогнать под нужный масштаб) -->
@@ -20,6 +22,37 @@ import Konva from 'konva'
 const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
+var resData = {elements: []}
+
+const saveScene = () => {
+  const sceneData = JSON.parse(stage.value.toJSON())
+  resData.elements = []
+  sceneData.children[0].children.forEach(element => {
+    if (element.className == "Text"){
+      resData.elements.push(element)
+    } 
+  });
+}
+
+const loadScene = (sceneData) => {
+  sceneData.elements.forEach(element =>{
+  console.log(element)
+  addText({
+      text: element.attrs.text,
+      x: element.attrs.x,
+      y: element.attrs.y,
+      rotation: element.attrs.rotation || 0,
+      fontSize: element.attrs.fontSize || 20,
+      fill: element.attrs.fill || 'black',
+      id: element.attrs.id || undefined,
+      draggable: true,
+      fontFamily: element.attrs.fontFamily,
+      fontStyle: element.attrs.fontStyle
+    });
+  });
+
+  layer.value.batchDraw();
+  }
 
 const availableFonts = [
   'Roboto',
@@ -35,30 +68,36 @@ const availableFonts = [
   'Alumni Sans',
 ]
 
-const addText = () => {
+const addText = (data = {}) => {
+  const defaultText = 'Новый текст';
+  const stageCenterX = stage.value.width() / 2;
+  const stageCenterY = stage.value.height() / 2;
+
   const textNode = new Konva.Text({
-    x: 50,
-    y: 50,
-    text: 'Дважды кликни,\nчтобы редактировать',
-    fontSize: 20,
-    fontFamily: 'Arial',
-    fill: 'black',
-    wrap: 'word',
+    text: data.text || defaultText,
+    x: data.x || stageCenterX,
+    y: data.y || stageCenterY,
+    rotation: data.rotation || 0,
+    fontSize: data.fontSize || 24,
+    fill: data.fill || '#000000',
+    id: data.id || `text-${Date.now()}`,
     draggable: true,
-  })
+    fontFamily: data.fontFamily || "Arial",
+    fontStyle: data.fontStyle || ""
+  });
 
   layer.value.add(textNode)
   layer.value.draw()
 
-   // Создаем рамку для выделения и ручку вращения
+  // Создаем рамку для выделения и ручку вращения
   const border = new Konva.Rect({
     stroke: 'blue',
     strokeWidth: 1,
     dash: [4, 2],
     visible: false,
-  });
-  border.listening(false);
-  layer.value.add(border);
+  })
+  border.listening(false)
+  layer.value.add(border)
 
   const rotationHandle = new Konva.Circle({
     radius: 6,
@@ -67,13 +106,13 @@ const addText = () => {
     strokeWidth: 1,
     visible: false,
     draggable: true,
-  });
-  layer.value.add(rotationHandle);
+  })
+  layer.value.add(rotationHandle)
 
   // Функция обновления позиции рамки и ручки, привязанных к текущему тексту
   const updateControls = () => {
     // Получаем bounding box текста с учетом трансформаций
-    const box = textNode.getClientRect({ relativeTo: layer.value });
+    const box = textNode.getClientRect({ relativeTo: layer.value })
     // Рамка — чуть больше bounding box
     border.setAttrs({
       x: box.x - 4,
@@ -81,34 +120,33 @@ const addText = () => {
       width: box.width + 8,
       height: box.height + 8,
       visible: true,
-    });
+    })
     // Вычисляем центр верхней границы
-    const centerX = box.x + box.width / 2;
-    const topY = box.y;
+    const centerX = box.x + box.width / 2
+    const topY = box.y
     // Ручка вращения появится над текстом на фиксированном расстоянии (например, 20px)
-    const handleDistance = 20;
+    const handleDistance = 20
     // Если текст уже повернут, можно скорректировать позицию (здесь для простоты используем осевой сдвиг)
     rotationHandle.setAttrs({
       x: centerX,
       y: topY - handleDistance,
       visible: true,
-    });
-  };
+    })
+  }
 
   // При одиночном клике по тексту – показываем рамку и ручку
   textNode.on('click', (e) => {
     // Не блокируем всплытие, чтобы другие элементы по-прежнему реагировали
-    updateControls();
-    layer.value.batchDraw();
+    updateControls()
+    layer.value.batchDraw()
     // Предотвращаем дальнейшую обработку, если нужно
-    e.cancelBubble = true;
-  });
-
+    e.cancelBubble = true
+  })
 
   textNode.on('dblclick', () => {
-    border.visible(false);
-    rotationHandle.visible(false);
-    layer.value.batchDraw();
+    border.visible(false)
+    rotationHandle.visible(false)
+    layer.value.batchDraw()
 
     const stageBox = stage.value.container().getBoundingClientRect()
 
@@ -138,10 +176,10 @@ const addText = () => {
       whiteSpace: 'nowrap',
       overflowX: 'hidden',
     })
-    const angle = textNode.rotation();
-textarea.style.transform = `rotate(${angle}deg)`;
-// Для корректного позиционирования измените точку трансформации, например:
-textarea.style.transformOrigin = 'top left';
+    const angle = textNode.rotation()
+    textarea.style.transform = `rotate(${angle}deg)`
+    // Для корректного позиционирования измените точку трансформации, например:
+    textarea.style.transformOrigin = 'top left'
 
     const nodeFontStyle = textNode.fontStyle() // например: 'bold italic'
     const isBold = nodeFontStyle.includes('bold')
@@ -468,35 +506,34 @@ textarea.style.transformOrigin = 'top left';
       window.addEventListener('click', handleOutsideClick)
     })
   })
-   // Обработка вращения при перетаскивании ручки
+  // Обработка вращения при перетаскивании ручки
   rotationHandle.on('dragmove', () => {
     // Получаем bounding box для точного центра текста
-    const box = textNode.getClientRect({ relativeTo: layer.value });
-    const centerX = box.x + box.width / 2;
-    const centerY = box.y + box.height / 2;
-    const dx = rotationHandle.x() - centerX;
-    const dy = rotationHandle.y() - centerY;
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    textNode.rotation(angle);
-    updateControls();
-    layer.value.batchDraw();
-  });
+    const box = textNode.getClientRect({ relativeTo: layer.value })
+    const centerX = box.x + box.width / 2
+    const centerY = box.y + box.height / 2
+    const dx = rotationHandle.x() - centerX
+    const dy = rotationHandle.y() - centerY
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI)
+    textNode.rotation(angle)
+    updateControls()
+    layer.value.batchDraw()
+  })
 
   // При перемещении текста обновляем позицию рамки и ручки
   textNode.on('dragmove', () => {
-    updateControls();
-    layer.value.batchDraw();
-  });
-    stage.value.on('click', (e) => {
-  // Если клик не по текстовому узлу и не по ручке вращения:
-  if (e.target !== textNode && e.target !== rotationHandle) {
-    border.visible(false);
-    rotationHandle.visible(false);
-    layer.value.batchDraw();
-  }
-});
+    updateControls()
+    layer.value.batchDraw()
+  })
+  stage.value.on('click', (e) => {
+    // Если клик не по текстовому узлу и не по ручке вращения:
+    if (e.target !== textNode && e.target !== rotationHandle) {
+      border.visible(false)
+      rotationHandle.visible(false)
+      layer.value.batchDraw()
+    }
+  })
 }
-
 
 const addImage = () => {
   const imageObj = new Image()
