@@ -99,6 +99,64 @@ watch(
         </div>
       </div>
     </div>
+    <div class="relative h-screen">
+      <div class="flex" style="padding: 4vw">
+        <div style="width: 65vw">
+          <img src="/len1.jpg" class="" />
+        </div>
+        <div class="text-right" style="margin-top: 5vw">
+          <h1
+            class="main"
+            style="color: oklch(27.9% 0.041 260.031); font-size: 5vw; margin-left: 0.5vw"
+          >
+            Дизайн без границ
+          </h1>
+          <h2 style="color: oklch(27.9% 0.041 260.031); font-size: 3vw; margin-left: 1vw">
+            от идеи до готовой книги в несколько кликов
+          </h2>
+        </div>
+      </div>
+    </div>
+    <div class="relative h-screen">
+      <div class="flex" style="padding: 4vw">
+        <div class="text-left overflow-hidden" style="margin-top: 5vw">
+          <h1
+            class="main"
+            style="color: oklch(27.9% 0.041 260.031); font-size: 5vw; margin-left: 0.5vw"
+          >
+            Бесплатно или
+            <div style="color: oklch(79.5% 0.184 86.047)">Premium</div>
+          </h1>
+          <h2 style="color: oklch(27.9% 0.041 260.031); font-size: 3vw; margin-left: 1vw">
+            какой план подходит именно вам?
+          </h2>
+        </div>
+        <div style="width: 65vw">
+          <img src="/len2.jpg" class="" />
+        </div>
+      </div>
+    </div>
+    <div class="relative h-screen">
+      <div class="flex place-content-end" style="padding: 4vw">
+        <div style="width: 40vw">
+          <img src="/len3.jpg" class="" />
+        </div>
+        <div
+          class="text-right overflow-hidden"
+          style="margin-top: 12vw; margin-left: 15vw; margin-right: 2vw"
+        >
+          <h1
+            class="main"
+            style="color: oklch(27.9% 0.041 260.031); font-size: 5vw; margin-left: 0.5vw"
+          >
+            Есть вопросы?
+          </h1>
+          <h2 style="color: oklch(27.9% 0.041 260.031); font-size: 3vw; margin-left: 1vw">
+            Напишите нам!
+          </h2>
+        </div>
+      </div>
+    </div>
     <div
       class="flex-grow bg-gradient-to-b"
       :style="{
@@ -108,8 +166,21 @@ watch(
           'linear-gradient(to bottom, var(--gradient-color-start), var(--gradient-color-end))',
       }"
     ></div>
+    <div
+      class="text-center flex self-center rounded-md cursor-pointer active:scale-95 select-none"
+      style="
+        background-color: #007dfe;
+        padding: 1.2vw 1.8vw 1.2vw 1.8vw;
+        color: white;
+        font-size: 2vw;
+        margin-bottom: 5vw;
+        transition: 0.1s ease;
+      "
+    >
+      Начать
+    </div>
     <footer
-      class="bg-slate-800 text-gray-300"
+      class="bg-slate-800 text-gray-300 z-50"
       style="padding-top: 6vw; padding-bottom: 4vw; padding-left: 6vw; padding-right: 5vw"
     >
       <div class="container mx-auto inline-flex md:flex-row justify-between items-center">
