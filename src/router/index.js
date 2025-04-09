@@ -3,10 +3,11 @@ import HomeView from '../views/HomeView.vue'
 import Register from '../views/Register.vue'
 import Login from '@/views/Login.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import HistoryView from '@/views/HistoryView.vue'
 import MyRoutesView from '@/views/MyRoutesView.vue'
 import ModerView from '@/views/ModerView.vue'
 import FavoritesView from '@/views/FavoritesView.vue'
-import Pdf from '@/views/Pdf.vue'
+import PDFView from '@/views/PDFView.vue'
 import FeedbackView from '@/views/FeedbackView.vue'
 
 const router = createRouter({
@@ -46,8 +47,7 @@ const router = createRouter({
     {
       path: '/pdf',
       name: 'pdf',
-
-      component: Pdf,
+      component: PDFView,
     },
     {
       path: '/feedback',
