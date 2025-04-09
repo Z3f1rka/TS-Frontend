@@ -5,29 +5,32 @@
       <!-- Контейнер листа, он занимает всё доступное пространство, с нижним отступом чтобы не перекрывать панель инструментов -->
       <div class="sheet-container flex-grow flex justify-center items-center pb-32 bg-gray-200">
         <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
-      <!-- Контейнер предпросмотров -->
-      <div ref="previewContainer" class="preview-container pointer-events-none"></div>
+        <!-- Контейнер предпросмотров -->
+        <div ref="previewContainer" class="preview-container pointer-events-none"></div>
 
-      <!-- Кнопка перехода на предыдущую страницу (слева) -->
-      <button 
-        class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-r-lg p-4 text-4xl focus:outline-none"
-        @click="prevPage">
-        &#8249;
-      </button>
+        <!-- Кнопка перехода на предыдущую страницу (слева) -->
+        <button
+          class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-r-lg p-4 text-4xl focus:outline-none"
+          @click="prevPage"
+        >
+          &#8249;
+        </button>
 
-      <!-- Кнопка перехода на следующую страницу (справа) -->
-      <button 
-        class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-l-lg p-4 text-4xl focus:outline-none"
-        @click="nextPage">
-        &#8250;
-      </button>
+        <!-- Кнопка перехода на следующую страницу (справа) -->
+        <button
+          class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-l-lg p-4 text-4xl focus:outline-none"
+          @click="nextPage"
+        >
+          &#8250;
+        </button>
 
-      <!-- Кнопка добавления новой страницы (справа внизу) -->
-      <button 
-        class="absolute right-4 bottom-4 bg-green-500 text-white hover:bg-green-600 rounded-full w-16 h-16 text-4xl flex items-center justify-center focus:outline-none"
-        @click="addPage">
-        +
-      </button>
+        <!-- Кнопка добавления новой страницы (справа внизу) -->
+        <button
+          class="absolute right-4 bottom-4 bg-green-500 text-white hover:bg-green-600 rounded-full w-16 h-16 text-4xl flex items-center justify-center focus:outline-none"
+          @click="addPage"
+        >
+          +
+        </button>
       </div>
 
       <!-- Нижняя панель инструментов -->
@@ -73,7 +76,7 @@ const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
 const previewContainer = ref(null)
-var resData = { pages: [{elements: []}] }
+var resData = { pages: [{ elements: [] }] }
 
 let leftPreviewContainer, rightPreviewContainer, leftPreviewImg, rightPreviewImg
 
@@ -111,7 +114,6 @@ const saveCurrentPage = () => {
   if (stage.value) {
     // Сохраняем текущий stage как JSON (или сохраняем объект stage, если планируете именно stage)
     pages.value[currentPage.value] = stage.value.toJSON()
-    console.log("save", pages.value[currentPage.value])
   }
 }
 
@@ -125,7 +127,7 @@ const loadPage = (index) => {
     createEmptyPage()
   }
   layer.value.draw()
-  rebindTextEvents()  // Привязываем обработчики для текстовых узлов
+  rebindTextEvents() // Привязываем обработчики для текстовых узлов
   rebindImageNodes()
   rebindImageEvents()
   updatePreviews()
@@ -165,7 +167,6 @@ const addPage = () => {
 
 const prevPage = () => {
   if (currentPage.value > 0) {
-    console.log("prev")
     saveCurrentPage()
     currentPage.value--
     loadPage(currentPage.value)
@@ -175,7 +176,6 @@ const prevPage = () => {
 
 const nextPage = () => {
   if (currentPage.value < pages.value.length - 1) {
-    console.log("next")
     saveCurrentPage()
     currentPage.value++
     loadPage(currentPage.value)
@@ -185,7 +185,6 @@ const nextPage = () => {
 
 const loadScene = (sceneData) => {
   sceneData.elements.forEach((element) => {
-    console.log(element)
     addText({
       text: element.attrs.text,
       x: element.attrs.x,
@@ -235,7 +234,6 @@ const addText = (data = {}) => {
   })
   layer.value.add(textNode)
   layer.value.draw()
-  console.log(textNode)
   attachTextListeners(textNode)
 }
 
@@ -249,84 +247,51 @@ const rebindTextEvents = () => {
 }
 
 const attachTextListeners = (textNode) => {
-  // Создаем рамку для выделения и ручку вращения
-  const border = new Konva.Rect({
-    stroke: 'blue',
-    strokeWidth: 1,
-    dash: [4, 2],
-    visible: false,
+  // Создаем Transformer для текстового узла
+  const transformer = new Konva.Transformer({
+    // Разрешаем изменение размера и вращение:
+    enabledAnchors: [],
+    rotateEnabled: true,
+    // Дополнительные опции для стилизации (по необходимости)
+    anchorSize: 8,
+    borderDash: [4, 2],
+    borderStroke: 'blue',
   })
-  border.listening(false)
-  layer.value.add(border)
-
-  const rotationHandle = new Konva.Circle({
-    radius: 6,
-    fill: 'blue',
-    stroke: 'white',
-    strokeWidth: 1,
-    visible: false,
-    draggable: true,
-  })
-  layer.value.add(rotationHandle)
-
-  // Функция обновления позиции рамки и ручки, привязанных к текущему тексту
-  const updateControls = () => {
-    // Получаем bounding box текста с учетом трансформаций
-    const box = textNode.getClientRect({ relativeTo: layer.value })
-    // Рамка — чуть больше bounding box
-    border.setAttrs({
-      x: box.x - 4,
-      y: box.y - 4,
-      width: box.width + 8,
-      height: box.height + 8,
-      visible: true,
-    })
-    // Вычисляем центр верхней границы
-    const centerX = box.x + box.width / 2
-    const topY = box.y
-    // Ручка вращения появится над текстом на фиксированном расстоянии (например, 20px)
-    const handleDistance = 20
-    // Если текст уже повернут, можно скорректировать позицию (здесь для простоты используем осевой сдвиг)
-    rotationHandle.setAttrs({
-      x: centerX,
-      y: topY - handleDistance,
-      visible: true,
-    })
-  }
-
-  // При одиночном клике по тексту – показываем рамку и ручку
+  layer.value.add(transformer)
+  // При клике на текстовом узле привязываем Transformer к нему
   textNode.on('click', (e) => {
-    // Не блокируем всплытие, чтобы другие элементы по-прежнему реагировали
-    updateControls()
-    layer.value.batchDraw()
-    // Предотвращаем дальнейшую обработку, если нужно
+    transformer.nodes([textNode])
+    transformer.show()
+    layer.value.draw()
+    // Отмена всплытия, чтобы Transformer не снимался при клике на stage
     e.cancelBubble = true
   })
 
-  textNode.on('dblclick', () => {
-    if (textNode.text() == 'Введите текст') {
-      textNode.text('')
-      textNode.fill('black')
+  // При клике вне узла снимаем Transformer (если нужно, можно привязать это глобально)
+  stage.value.on('click', (e) => {
+    // Если клик не по самому текстовому узлу
+    if (e.target !== textNode) {
+      transformer.nodes([])
+      layer.value.draw()
     }
-    border.visible(false)
-    rotationHandle.visible(false)
-    layer.value.batchDraw()
+  })
+   textNode.on('dblclick', () => {
+    // Расположение с учетом абсолютных координат текстового узла
+    const absPos = textNode.getAbsolutePosition();
+    const stageBox = stage.value.container().getBoundingClientRect();
+    // Скрываем текстовый узел и Transformer
+    transformer.hide();
+    textNode.hide();
+    layer.value.batchDraw();
 
-    const stageBox = stage.value.container().getBoundingClientRect()
+    // Создаем textarea и позиционируем её относительно absPos
+    const textarea = document.createElement('textarea');
+    textarea.value = textNode.text();
 
-    const textarea = document.createElement('textarea')
-    textNode.hide()
-    textarea.value = textNode.text()
-    layer.value.batchDraw()
-
-    // Стили
     Object.assign(textarea.style, {
       position: 'absolute',
-      top: `${stageBox.top + textNode.y()}px`,
-      left: `${stageBox.left + textNode.x()}px`,
-      width: 'auto',
-      minWidth: '50px',
-      maxWidth: 'none',
+      top: `${absPos.y + 104}px`,
+      left: `${stageBox.left + absPos.x - 4}px`,
       fontSize: `${textNode.fontSize()}px`,
       fontFamily: textNode.fontFamily(),
       color: textNode.fill(),
@@ -338,8 +303,7 @@ const attachTextListeners = (textNode) => {
       zIndex: '1000',
       lineHeight: textNode.lineHeight().toString(),
       whiteSpace: 'nowrap',
-      overflowX: 'hidden',
-    })
+    });
     const angle = textNode.rotation()
     textarea.style.transform = `rotate(${angle}deg)`
     // Для корректного позиционирования измените точку трансформации, например:
@@ -355,25 +319,17 @@ const attachTextListeners = (textNode) => {
     textarea.style.textDecoration = isUnderline ? 'underline' : 'none'
     document.body.appendChild(textarea)
 
-    // 🔁 Автоматическая подстройка высоты
     const autosizeTextarea = () => {
-      textarea.style.height = 'auto'
-      textarea.style.width = 'auto'
-      const paddingX = 8 // в px (left + right), соответствует padding: 4px
-      const paddingY = 8
-
-      // Используем scroll размеры, чтобы определить нужные габариты
-      textarea.style.height = textarea.scrollHeight + paddingY + 'px'
-      textarea.style.width = textarea.scrollWidth + paddingX + 'px'
-    }
-
-    // Первый запуск
-    autosizeTextarea()
-
-    // Подстройка при наборе текста
-    textarea.addEventListener('input', autosizeTextarea)
-
-    textarea.focus()
+      textarea.style.height = 'auto';
+      textarea.style.width = 'auto';
+      const paddingX = 8;
+      const paddingY = 8;
+      textarea.style.height = textarea.scrollHeight + paddingY + 'px';
+      textarea.style.width = textarea.scrollWidth + paddingX + 'px';
+    };
+    autosizeTextarea();
+    textarea.addEventListener('input', autosizeTextarea);
+    textarea.focus();
 
     // 🎛 Панель стилей
     const toolbar = document.createElement('div')
@@ -757,33 +713,6 @@ const attachTextListeners = (textNode) => {
       window.addEventListener('click', handleOutsideClick)
     })
   })
-  // Обработка вращения при перетаскивании ручки
-  rotationHandle.on('dragmove', () => {
-    // Получаем bounding box для точного центра текста
-    const box = textNode.getClientRect({ relativeTo: layer.value })
-    const centerX = box.x + box.width / 2
-    const centerY = box.y + box.height / 2
-    const dx = rotationHandle.x() - centerX
-    const dy = rotationHandle.y() - centerY
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI)
-    textNode.rotation(angle)
-    updateControls()
-    layer.value.batchDraw()
-  })
-
-  // При перемещении текста обновляем позицию рамки и ручки
-  textNode.on('dragmove', () => {
-    updateControls()
-    layer.value.batchDraw()
-  })
-  stage.value.on('click', (e) => {
-    // Если клик не по текстовому узлу и не по ручке вращения:
-    if (e.target !== textNode && e.target !== rotationHandle) {
-      border.visible(false)
-      rotationHandle.visible(false)
-      layer.value.batchDraw()
-    }
-  })
 }
 const fileInput = ref(null)
 let fileDa = null // Переменная для хранения выбранного файла
@@ -798,19 +727,18 @@ const handleFileUpload = (event) => {
 }
 
 const rebindImageNodes = () => {
-  const imageNodes = layer.value.find('Image');
+  const imageNodes = layer.value.find('Image')
   imageNodes.forEach((node) => {
-    const src = node.getAttr('src'); // наш кастомный атрибут
+    const src = node.getAttr('src') // наш кастомный атрибут
     if (src) {
-      const img = new Image();
+      const img = new Image()
       img.onload = () => {
-        node.image(img);
-        layer.value.batchDraw();
+        node.image(img)
+        layer.value.batchDraw()
       }
-      img.src = src;
-      
+      img.src = src
     }
-  });
+  })
 }
 
 const attachImageListeners = (imgNode) => {
@@ -826,34 +754,34 @@ const attachImageListeners = (imgNode) => {
     anchorSize: 10,
     borderStroke: 'blue',
     borderDash: [4, 2],
-  });
-  layer.value.add(transformer);
+  })
+  layer.value.add(transformer)
 
   // При клике на изображении — привязываем transformer к нему
   imgNode.on('click', (e) => {
-    transformer.nodes([imgNode]);
-    layer.value.batchDraw();
-    e.cancelBubble = true;
-  });
+    transformer.nodes([imgNode])
+    layer.value.batchDraw()
+    e.cancelBubble = true
+  })
 
   // При клике вне изображения снимаем transformer с этого узла
   stage.value.on('click', (e) => {
     // Если клик не по данному imgNode (или его transformer)
     if (e.target !== imgNode) {
-      transformer.nodes([]);
-      layer.value.batchDraw();
+      transformer.nodes([])
+      layer.value.batchDraw()
     }
-  });
-};
+  })
+}
 
 const rebindImageEvents = () => {
-  const imgNodes = layer.value.find('Image');
+  const imgNodes = layer.value.find('Image')
   imgNodes.forEach((node) => {
     // Если необходимо, сперва удалить старые обработчики, чтобы не накладывать их повторно.
     // Затем привязать обработчики.
-    attachImageListeners(node);
-  });
-};
+    attachImageListeners(node)
+  })
+}
 
 const addImage = async () => {
   if (!fileDa) {
@@ -876,7 +804,7 @@ const addImage = async () => {
           draggable: true,
         })
         layer.value.add(img)
-        img.setAttr('src', imageObj.src);
+        img.setAttr('src', imageObj.src)
         layer.value.draw()
 
         const transformer = new Konva.Transformer({
@@ -894,14 +822,14 @@ const addImage = async () => {
         })
         layer.value.add(transformer)
         layer.value.draw()
-  
+
         // Чтобы Transformer появлялся по клику на изображение:
         img.on('click', (e) => {
           transformer.nodes([img])
           layer.value.draw()
           e.cancelBubble = true
         })
-  
+
         // При клике вне изображения отключать Transformer:
         stage.value.on('click', (e) => {
           if (e.target !== img) {
@@ -919,69 +847,68 @@ const addImage = async () => {
 }
 
 const loadImagesInTempStage = (tempStage) => {
-  const imageNodes = tempStage.find('Image');
-  const promises = [];
+  const imageNodes = tempStage.find('Image')
+  const promises = []
   imageNodes.forEach((node) => {
-    const src = node.getAttr('src'); // наш кастомный атрибут, который мы записывали при создании
+    const src = node.getAttr('src') // наш кастомный атрибут, который мы записывали при создании
     if (src) {
       const p = new Promise((resolve, reject) => {
-        const img = new Image();
+        const img = new Image()
         img.onload = () => {
-          node.image(img);
-          resolve();
-        };
-        img.onerror = reject;
-        img.src = src;
-        
-      });
-      promises.push(p);
+          node.image(img)
+          resolve()
+        }
+        img.onerror = reject
+        img.src = src
+      })
+      promises.push(p)
     }
-  });
-  return Promise.all(promises);
-};
+  })
+  return Promise.all(promises)
+}
 
 const updatePreviews = async () => {
   // Предыдущая страница
   if (currentPage.value > 0) {
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.visibility = 'hidden';
-    document.body.appendChild(tempContainer);
-    const tempStage = Konva.Node.create(pages.value[currentPage.value - 1], tempContainer);
+    const tempContainer = document.createElement('div')
+    tempContainer.style.position = 'absolute'
+    tempContainer.style.visibility = 'hidden'
+    document.body.appendChild(tempContainer)
+    const tempStage = Konva.Node.create(pages.value[currentPage.value - 1], tempContainer)
     try {
-      await loadImagesInTempStage(tempStage);
-      const dataURL = tempStage.toDataURL();
-      leftPreviewImg.src = dataURL;
+      await loadImagesInTempStage(tempStage)
+      const dataURL = tempStage.toDataURL()
+      leftPreviewImg.src = dataURL
     } catch (err) {
-      console.error("Ошибка загрузки изображений в предпросмотре:", err);
+      console.error('Ошибка загрузки изображений в предпросмотре:', err)
     }
-    tempStage.destroy();
-    document.body.removeChild(tempContainer);
-    leftPreviewContainer.style.display = 'block';
+    tempStage.destroy()
+    document.body.removeChild(tempContainer)
+    leftPreviewContainer.style.display = 'block'
   } else {
-    leftPreviewContainer.style.display = 'none';
+    leftPreviewContainer.style.display = 'none'
   }
   // Следующая страница
   if (currentPage.value < pages.value.length - 1) {
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.visibility = 'hidden';
-    document.body.appendChild(tempContainer);
-    const tempStage = Konva.Node.create(pages.value[currentPage.value + 1], tempContainer);
+    const tempContainer = document.createElement('div')
+    tempContainer.style.position = 'absolute'
+    tempContainer.style.visibility = 'hidden'
+    document.body.appendChild(tempContainer)
+    const tempStage = Konva.Node.create(pages.value[currentPage.value + 1], tempContainer)
     try {
-      await loadImagesInTempStage(tempStage);
-      const dataURL = tempStage.toDataURL();
-      rightPreviewImg.src = dataURL;
+      await loadImagesInTempStage(tempStage)
+      const dataURL = tempStage.toDataURL()
+      rightPreviewImg.src = dataURL
     } catch (err) {
-      console.error("Ошибка загрузки изображений в предпросмотре:", err);
+      console.error('Ошибка загрузки изображений в предпросмотре:', err)
     }
-    tempStage.destroy();
-    document.body.removeChild(tempContainer);
-    rightPreviewContainer.style.display = 'block';
+    tempStage.destroy()
+    document.body.removeChild(tempContainer)
+    rightPreviewContainer.style.display = 'block'
   } else {
-    rightPreviewContainer.style.display = 'none';
+    rightPreviewContainer.style.display = 'none'
   }
-};
+}
 
 onMounted(() => {
   const width = 595
