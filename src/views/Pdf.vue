@@ -829,11 +829,29 @@ const addImage = async () => {
     reader.onload = (e) => {
       const imageObj = new Image()
       imageObj.onload = () => {
+        const container = stageContainer.value // Убедись, что у тебя есть такой ref
+        const containerWidth = container.clientWidth
+        const containerHeight = container.clientHeight
+
+        const maxWidth = containerWidth * 0.9
+        const maxHeight = containerHeight * 0.9
+
+        const originalWidth = imageObj.width
+        const originalHeight = imageObj.height
+
+        const scaleX = maxWidth / originalWidth
+        const scaleY = maxHeight / originalHeight
+        const scale = Math.min(1, scaleX, scaleY)
+
+        const newWidth = originalWidth * scale
+        const newHeight = originalHeight * scale
         const img = new Konva.Image({
-          x: 100,
+          x: 0,
           y: 100,
           image: imageObj,
           draggable: true,
+          width: newWidth,
+          height: newHeight,
         })
         layer.value.add(img)
         img.setAttr('src', imageObj.src)
