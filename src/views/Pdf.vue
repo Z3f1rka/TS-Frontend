@@ -284,7 +284,6 @@ const attachTextListeners = (textNode) => {
     // Отмена всплытия, чтобы Transformer не снимался при клике на stage
     e.cancelBubble = true
   })
-  selectedNode.value = textNode
   textNode._transformer = transformer
 
   // При клике вне узла снимаем Transformer (если нужно, можно привязать это глобально)
@@ -298,6 +297,7 @@ const attachTextListeners = (textNode) => {
 
   // При клике по тексту:
   textNode.on('click', (e) => {
+    if (selectedNode.value)
     selectedNode.value._transformer.nodes([])
     // Привязываем Transformer, если вы его используете – можно оставить этот код.
     transformer.nodes([textNode])
@@ -789,7 +789,8 @@ const attachImageListeners = (imgNode) => {
   })
   layer.value.add(transformer)
   imgNode._transformer = transformer
-  selectedNode.value._transformer.nodes([])
+      if (selectedNode.value)
+    selectedNode.value._transformer.nodes([])
   selectedNode.value = imgNode
 
   // При клике вне изображения снимаем transformer с этого узла
@@ -807,6 +808,7 @@ const attachImageListeners = (imgNode) => {
   })
 
   imgNode.on('click', (e) => {
+    if (selectedNode.value)
     selectedNode.value._transformer.nodes([])
     transformer.nodes([imgNode])
     selectedNode.value = imgNode
