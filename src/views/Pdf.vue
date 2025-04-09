@@ -50,12 +50,72 @@ const addText = () => {
   layer.value.add(textNode)
   layer.value.draw()
 
+   // Создаем рамку для выделения и ручку вращения
+  const border = new Konva.Rect({
+    stroke: 'blue',
+    strokeWidth: 1,
+    dash: [4, 2],
+    visible: false,
+  });
+  border.listening(false);
+  layer.value.add(border);
+
+  const rotationHandle = new Konva.Circle({
+    radius: 6,
+    fill: 'blue',
+    stroke: 'white',
+    strokeWidth: 1,
+    visible: false,
+    draggable: true,
+  });
+  layer.value.add(rotationHandle);
+
+  // Функция обновления позиции рамки и ручки, привязанных к текущему тексту
+  const updateControls = () => {
+    // Получаем bounding box текста с учетом трансформаций
+    const box = textNode.getClientRect({ relativeTo: layer.value });
+    // Рамка — чуть больше bounding box
+    border.setAttrs({
+      x: box.x - 4,
+      y: box.y - 4,
+      width: box.width + 8,
+      height: box.height + 8,
+      visible: true,
+    });
+    // Вычисляем центр верхней границы
+    const centerX = box.x + box.width / 2;
+    const topY = box.y;
+    // Ручка вращения появится над текстом на фиксированном расстоянии (например, 20px)
+    const handleDistance = 20;
+    // Если текст уже повернут, можно скорректировать позицию (здесь для простоты используем осевой сдвиг)
+    rotationHandle.setAttrs({
+      x: centerX,
+      y: topY - handleDistance,
+      visible: true,
+    });
+  };
+
+  // При одиночном клике по тексту – показываем рамку и ручку
+  textNode.on('click', (e) => {
+    // Не блокируем всплытие, чтобы другие элементы по-прежнему реагировали
+    updateControls();
+    layer.value.batchDraw();
+    // Предотвращаем дальнейшую обработку, если нужно
+    e.cancelBubble = true;
+  });
+
+
   textNode.on('dblclick', () => {
+    border.visible(false);
+    rotationHandle.visible(false);
+    layer.value.batchDraw();
+
     const stageBox = stage.value.container().getBoundingClientRect()
 
     const textarea = document.createElement('textarea')
     textNode.hide()
     textarea.value = textNode.text()
+    layer.value.batchDraw()
 
     // Стили
     Object.assign(textarea.style, {
@@ -78,6 +138,11 @@ const addText = () => {
       whiteSpace: 'nowrap',
       overflowX: 'hidden',
     })
+    const angle = textNode.rotation();
+textarea.style.transform = `rotate(${angle}deg)`;
+// Для корректного позиционирования измените точку трансформации, например:
+textarea.style.transformOrigin = 'top left';
+
     const nodeFontStyle = textNode.fontStyle() // например: 'bold italic'
     const isBold = nodeFontStyle.includes('bold')
     const isItalic = nodeFontStyle.includes('italic')
@@ -239,7 +304,6 @@ const addText = () => {
     }
 
     const updateColorBtnAppearance = (colorHex) => {
-      console.log(colorHex)
       // Простейший расчёт яркости для определения цвета текста кнопки:
       const r = parseInt(colorHex.substr(1, 2), 16)
       const g = parseInt(colorHex.substr(3, 2), 16)
@@ -317,8 +381,8 @@ const addText = () => {
     // Поле для ввода HEX кода
     const hexInput = document.createElement('input')
     hexInput.type = 'text'
-    hexInput.value = getHexColor(textNode.fill() || '#000000');
- 
+    hexInput.value = getHexColor(textNode.fill() || '#000000')
+
     hexInput.placeholder = '#hexcode'
     hexInput.style.marginTop = '8px'
     hexInput.addEventListener('input', () => {
@@ -404,7 +468,35 @@ const addText = () => {
       window.addEventListener('click', handleOutsideClick)
     })
   })
+   // Обработка вращения при перетаскивании ручки
+  rotationHandle.on('dragmove', () => {
+    // Получаем bounding box для точного центра текста
+    const box = textNode.getClientRect({ relativeTo: layer.value });
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+    const dx = rotationHandle.x() - centerX;
+    const dy = rotationHandle.y() - centerY;
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    textNode.rotation(angle);
+    updateControls();
+    layer.value.batchDraw();
+  });
+
+  // При перемещении текста обновляем позицию рамки и ручки
+  textNode.on('dragmove', () => {
+    updateControls();
+    layer.value.batchDraw();
+  });
+    stage.value.on('click', (e) => {
+  // Если клик не по текстовому узлу и не по ручке вращения:
+  if (e.target !== textNode && e.target !== rotationHandle) {
+    border.visible(false);
+    rotationHandle.visible(false);
+    layer.value.batchDraw();
+  }
+});
 }
+
 
 const addImage = () => {
   const imageObj = new Image()
