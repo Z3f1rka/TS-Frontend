@@ -31,7 +31,7 @@ const submitHandler = async (data) => {
 <template>
   <div class="flex items-center justify-center h-screen w-screen">
     <div style="width: 50vw">
-      <img src="/image.png" class="object-cover w-full" style="height: 100vh" />
+      <img src="/book1.jpg" class="object-cover w-full" style="height: 100vh" />
     </div>
     <div class="flex-grow ml-20">
       <FormKit

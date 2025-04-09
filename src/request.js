@@ -35,16 +35,19 @@ api.interceptors.response.use(
       } else {
         originalRequest._retry = true
 
-        const refresh = localStorage.getItem('refresh_token')
+        let refresh = localStorage.getItem('refresh_token')
 
         try {
-          const response = await api.post('auth/refresh', { headers: { 'jwt-refresh': refresh } })
-          const newAccessToken = response.data.access
+          if (!(refresh === null)) {
+            const response = await api.get('auth/refresh', { headers: { 'jwt-refresh': refresh } })
+            const newAccessToken = response.data.access
 
-          localStorage.setItem('token', newAccessToken)
-          originalRequest.headers['authorization'] = `Bearer ${newAccessToken}`
+            localStorage.setItem('token', newAccessToken)
+            originalRequest.headers['authorization'] = `Bearer ${newAccessToken}`
 
-          return api(originalRequest)
+            return api(originalRequest)
+          }
+          return 1
         } catch (refreshError) {}
       }
     }
@@ -64,7 +67,6 @@ api.interceptors.request.use(
 )
 
 export default api
-
 
 export const auth_get = (url, api = undefined) => {
   return new Promise((resolve, reject) => {

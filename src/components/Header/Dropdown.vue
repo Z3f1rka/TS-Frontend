@@ -15,7 +15,7 @@ let data = defineProps({
 </script>
 <template>
   <div
-    class="absolute right-0 z-10 origin-top-right select-none focus:outline-none bg-slate-100"
+    class="absolute right-0 z-10 origin-top-right select-none focus:outline-none bg-slate-50"
     role="menu"
     aria-orientation="vertical"
     aria-labelledby="menu-button"
@@ -30,7 +30,7 @@ let data = defineProps({
         role="menuitem"
         tabindex="-1"
         id="menu-item-0"
-        ><img :src="data.img" class="rounded-full" style="width: 5.2vw" />
+        ><img :src="data.img" class="rounded-full shadow-lg" style="width: 5.2vw; height: 5.2vw" />
       </a>
       <a
         v-if="!data.img"
@@ -39,7 +39,7 @@ let data = defineProps({
         role="menuitem"
         tabindex="-1"
         id="menu-item-0"
-        ><img src="/avatar.jpg" class="rounded-full" style="width: 5.2vw" />
+        ><img src="/avatar.jpg" class="rounded-full shadow-lg" style="width: 5.2vw" />
       </a>
       <a
         href="#"
@@ -79,7 +79,7 @@ let data = defineProps({
       >
       <router-link :to="{ path: '/moder', query: { id: data.id } }">
         <a
-          v-if="data.role != 'user'"
+          v-if="data.role === 'admin'"
           href="#"
           class="block DropDownElement"
           style="padding-left: 1.05vw; padding-top: 0.8vw; padding-bottom: 0.8vw; font-size: 1.15vw"
@@ -96,7 +96,7 @@ let data = defineProps({
       >
       <router-link :to="{ path: '/register' }">
         <a
-          v-if="data.role != 'user'"
+          v-if="data.role === 'admin'"
           href="#"
           class="block DropDownElement"
           style="padding-left: 1.05vw; padding-top: 0.8vw; padding-bottom: 0.8vw; font-size: 1.15vw"
@@ -119,7 +119,7 @@ let data = defineProps({
           id="menu-item-1"
           ><div class="inline-flex items-center">
             <img src="/location.png" style="width: 1.1vw; height: 1.1vw; margin-right: 0.6vw" />Мои
-            маршруты
+            проекты
           </div></a
         ></router-link
       >

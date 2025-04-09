@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-  header {
+header {
   top: 0;
   z-index: 999;
   width: 100%;
@@ -15,7 +15,7 @@
   font-size: 38px;
 }
 .DropDown:hover {
-  background-color: #024059;
+  background-color: oklch(96.8% 0.007 247.896);
 }
 .DropDownElement {
   background-color: LiteGreen;
