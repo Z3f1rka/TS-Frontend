@@ -79,7 +79,7 @@ let data = defineProps({
       >
       <router-link :to="{ path: '/moder', query: { id: data.id } }">
         <a
-          v-if="data.role != 'user'"
+          v-if="data.role === 'admin'"
           href="#"
           class="block DropDownElement"
           style="padding-left: 1.05vw; padding-top: 0.8vw; padding-bottom: 0.8vw; font-size: 1.15vw"
@@ -96,7 +96,7 @@ let data = defineProps({
       >
       <router-link :to="{ path: '/register' }">
         <a
-          v-if="data.role != 'user'"
+          v-if="data.role === 'admin'"
           href="#"
           class="block DropDownElement"
           style="padding-left: 1.05vw; padding-top: 0.8vw; padding-bottom: 0.8vw; font-size: 1.15vw"
@@ -119,7 +119,7 @@ let data = defineProps({
           id="menu-item-1"
           ><div class="inline-flex items-center">
             <img src="/location.png" style="width: 1.1vw; height: 1.1vw; margin-right: 0.6vw" />Мои
-            маршруты
+            проекты
           </div></a
         ></router-link
       >

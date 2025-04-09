@@ -33,15 +33,34 @@ const handleMouseLeave = () => {
     @mouseover="handleMouseOver"
     @mouseleave="handleMouseLeave"
   >
-    <img
-      v-if="data.card.photo != undefined && data.card.photo != null && data.card.photo != ''"
-      :src="api + 'files/download/' + data.card.photo"
-      class="w-full h-full object-cover"
-    />
-    <div v-if="data.size != 3">
+    <div v-if="data.size != 1">
+      <img
+        v-if="data.card.file != undefined && data.card.file != null && data.card.file != ''"
+        :src="api + 'files/download/' + data.card.file"
+        class="w-full h-full object-cover"
+      />
+    </div>
+    <div v-if="data.size === 1">
+      <img
+        v-if="
+          data.card.object.file != undefined &&
+          data.card.object.file != null &&
+          data.card.object.file != ''
+        "
+        :src="api + 'files/download/' + data.card.object.file"
+        class="w-full h-full object-cover"
+      />
+    </div>
+    <div
+      v-if="
+        (data.size === 2 && data.card.file === undefined) ||
+        data.card.file === null ||
+        data.card.file === ''
+      "
+    >
       <img src="/background3.png" class="w-full h-full object-cover" />
     </div>
-    <div v-else>
+    <div v-if="data.size === 3">
       <img src="/what.png" class="w-full h-full object-cover" />
     </div>
     <div v-if="data.size === 2" class="absolute bottom-0 w-full content-center desc">
@@ -51,6 +70,7 @@ const handleMouseLeave = () => {
       >
         {{ data.card.title }}
       </h1>
+      <!--
       <img
         v-if="data.card.status === 'public' || data.card.status == undefined"
         src="/arrow1.svg"
@@ -62,15 +82,16 @@ const handleMouseLeave = () => {
         src="/cross.png"
         style="width: 2vw; margin-right: 2vw; margin-top: 1.3vw"
         class="absolute right-0"
-      />
+      />-->
     </div>
     <div v-if="data.size === 1" class="absolute bottom-0 w-full content-center desc">
       <h1
         style="font-size: 1vw; margin-left: 1vw; margin-right: 2vw; transition: opacity 2s ease"
         class="content-center truncate"
       >
-        {{ data.card.title }}
+        {{ data.card.object.title }}
       </h1>
+      <!--
       <img
         v-if="data.card.status === 'public' || data.card.status == undefined"
         src="/arrow1.svg"
@@ -82,7 +103,7 @@ const handleMouseLeave = () => {
         src="/cross.png"
         style="width: 2vw; margin-right: 2vw; margin-top: 1.3vw"
         class="absolute right-0"
-      />
+      />-->
     </div>
   </div>
 </template>

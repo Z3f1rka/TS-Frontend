@@ -61,28 +61,17 @@ const fetchData = async () => {
   loadingM.value = false
 
   try {
-    selfcards.array = await api.get(`routes/all_user_routes?user_id=${id}`)
+    selfcards.array = await api.get(`objects/all_user_objects?user_id=${id}`)
     if (selfcards.array == undefined) {
       throw undefined
     }
   } catch (err) {
     console.error('Ошибка при запросе к первичному эндпоинту:', err)
-    try {
-      selfcards.array = await api.get(`routes/all_user_public_routes?user_id=${id}`)
-      if (selfcards.array == undefined) {
-        throw undefined
-      }
-    } catch (err1) {
-      console.error('Ошибка при запросе к вторичному эндпоинту:', err1)
-    }
   } finally {
     loadingM.value = true
-    if (selfcards.array.length >= 3) {
-      rulefive.value = true
-      selfcards.array = selfcards.array.slice(0, 3)
-    }
   }
 }
+/*
 const fetchDataH = async () => {
   loadingH.value = false
   try {
@@ -100,6 +89,7 @@ const fetchDataH = async () => {
     }
   }
 }
+  */
 
 const rulefiveF = ref(false)
 const loadingF = ref(false)
@@ -119,17 +109,12 @@ const fetchDataI = async () => {
     console.log(err)
   } finally {
     loadingF.value = true
-    if (favoritescards.array.length >= 6) {
-      rulefiveF.value = true
-      favoritescards.array = favoritescards.array.slice(0, 6)
-    }
   }
 }
 async function NewRoute() {
   try {
-    const newid = await api.post(`routes/create`, { title: 'Новый маршрут' })
-    console.log(newid)
-    router.push(`/create_route?id=${newid}`)
+    const newid = await api.post(`objects/create`, { title: 'Новый проект' })
+    router.push(`/create_doc?id=${newid}`)
   } catch (err) {
     console.log(err)
   }
@@ -137,9 +122,11 @@ async function NewRoute() {
 onMounted(() => {
   fetchData()
 })
+/*
 onMounted(() => {
   fetchDataH()
 })
+  */
 onMounted(() => {
   fetchDataI()
 })
@@ -261,7 +248,11 @@ const handleFileUpload = async (event) => {
               <div class="grid grid-cols-3" style="margin-bottom: 2vw">
                 <div></div>
                 <div style="color: #007dfe">Избранное</div>
-                <div v-if="rulefive" class="flex justify-end" style="margin-right: 4vw">
+                <div
+                  v-if="favoritescards.array.length > 3"
+                  class="flex justify-end"
+                  style="margin-right: 4vw"
+                >
                   <router-link :to="{ path: '/my_routes', query: { id: id } }"
                     ><div
                       class="items-center rounded-lg text-center bg-white text-black active:scale-95"
@@ -282,7 +273,7 @@ const handleFileUpload = async (event) => {
               </div>
             </div>
             <div
-              v-if="!loading"
+              v-if="loadingM && favoritescards.array.length > 0"
               style="
                 margin-left: 0.3vw;
                 margin-bottom: 3vw;
@@ -291,10 +282,10 @@ const handleFileUpload = async (event) => {
                 padding-bottom: 1.5vw;
                 padding-right: 1.5vw;
               "
-              class="bg-slate-200 rounded-s-2xl"
+              class="bg-white rounded-s-2xl shadow-lg"
             >
               <div class="text-white flex place-content-around">
-                <div v-for="item in selfcards.array" :key="item.id">
+                <div v-for="item in favoritescards.array.slice(0, 3)" :key="item.id">
                   <div class="hover:scale-105" style="transition: 0.1s ease">
                     <router-link :to="{ path: '/create_route', query: { id: item.main_route_id } }">
                       <Card
@@ -307,10 +298,28 @@ const handleFileUpload = async (event) => {
                 </div>
               </div>
             </div>
+            <div
+              v-if="favoritescards.array.length === 0"
+              style="
+                margin-left: 0.3vw;
+                margin-bottom: 3vw;
+                transition: 0.3s ease;
+                margin-top: 1vw;
+                padding-bottom: 1.5vw;
+                padding-right: 1.5vw;
+              "
+              class="bg-white rounded-s-2xl shadow-lg"
+            >
+              <div class="text-white flex place-content-center">
+                <div>
+                  <img src="/fav.jpg" style="width: 25vw; height: 25vw" class="object-cover" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div
-          v-if="!loading"
+          v-if="loadingM"
           class="text-center"
           style="
             margin-right: 1vw;
@@ -322,6 +331,7 @@ const handleFileUpload = async (event) => {
         >
           <div class="text-white flex place-content-center">
             <Card
+              @click="NewRoute"
               :card="{ title: 'nananani' }"
               :size="3"
               class="hover:scale-105"

@@ -13,15 +13,6 @@ const state = reactive({
 
 const gradientStartColor = computed(() => 'oklch(96.8% 0.007 247.896)')
 
-async function loadRoutes() {
-  try {
-    const data = await api.get('routes/all_public_routes')
-    state.array = data
-  } catch (error) {
-    state.array = []
-  }
-}
-
 async function NewRoute() {
   try {
     const newid = await api.post(`routes/create`, { title: 'Новый маршрут' })
@@ -60,9 +51,33 @@ onMounted(() => {
     }
   }
 })
-onMounted(async () => {
-  await loadRoutes()
+let user = ref()
+let auth = ref()
+async function f() {
+  try {
+    const data = await api.get('auth/me')
+    user.value = data
+    if (data == undefined) {
+      throw undefined
+    }
+    if (data === 1) {
+      auth.value = false
+    }
+  } catch (err) {
+    console.log(err)
+    router.push({ path: '/' })
+    alert('Такого пользователя')
+  }
+}
+onMounted(() => {
+  f()
 })
+watch(
+  () => user.value,
+  () => {
+    auth.value = true
+  },
+)
 </script>
 
 <template>
@@ -104,17 +119,17 @@ onMounted(async () => {
           <p style="font-size: 0.8vw">Телефон: +7 (908) 490-30-27</p>
           <p style="font-size: 0.8vw">GitHub: https://github.com/Z3f1rka/TSMain</p>
         </div>
-
-        <div>
-          <div class="mt-0 flex text-center" style="display: flex; space-x: 0.6vw">
-            <a href="#" class="hover:text-gray-100" style="font-size: 1.4vw; margin-bottom: 0.2vw"
-              >Задать вопрос</a
-            ><img
-              src="/arrow1.svg"
-              style="width: 1.2vw; height: 1.2vw; margin-left: 0.8vw"
-              class="self-center"
-            />
-          </div>
+        <div v-if="auth && user != 1">
+          <router-link :to="{ path: '/feedback', query: { id: user.id } }">
+            <div class="mt-0 flex text-center" style="display: flex; space-x: 0.6vw">
+              <a class="hover:text-gray-100" style="font-size: 1.4vw; margin-bottom: 0.2vw"
+                >Задать вопрос</a
+              ><img
+                src="/arrow1.svg"
+                style="width: 1.2vw; height: 1.2vw; margin-left: 0.8vw"
+                class="self-center"
+              /></div
+          ></router-link>
         </div>
       </div>
     </footer>
