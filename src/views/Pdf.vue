@@ -284,6 +284,7 @@ const attachTextListeners = (textNode) => {
     // Отмена всплытия, чтобы Transformer не снимался при клике на stage
     e.cancelBubble = true
   })
+  selectedNode.value = textNode
   textNode._transformer = transformer
 
   // При клике вне узла снимаем Transformer (если нужно, можно привязать это глобально)
@@ -297,6 +298,7 @@ const attachTextListeners = (textNode) => {
 
   // При клике по тексту:
   textNode.on('click', (e) => {
+    selectedNode.value._transformer.nodes([])
     // Привязываем Transformer, если вы его используете – можно оставить этот код.
     transformer.nodes([textNode])
     // Устанавливаем выбранный узел
@@ -787,17 +789,25 @@ const attachImageListeners = (imgNode) => {
   })
   layer.value.add(transformer)
   imgNode._transformer = transformer
+  selectedNode.value._transformer.nodes([])
+  selectedNode.value = imgNode
 
   // При клике вне изображения снимаем transformer с этого узла
   stage.value.on('click', (e) => {
-    // Если клик не по данному imgNode (или его transformer)
-    if (e.target !== imgNode) {
+    const clickedNode = e.target;
+    console.log(selectedNode.value)
+  selectedNode.value._transformer.nodes([])
+  const currentNodes = transformer.nodes();
+
+  // Если кликнутый узел не входит в список активных узлов
+  if (!currentNodes.includes(clickedNode)) {
       transformer.nodes([])
       layer.value.batchDraw()
     }
   })
 
   imgNode.on('click', (e) => {
+    selectedNode.value._transformer.nodes([])
     transformer.nodes([imgNode])
     selectedNode.value = imgNode
     console.log(selectedNode)
