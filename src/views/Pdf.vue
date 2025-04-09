@@ -127,6 +127,7 @@ const loadPage = (index) => {
   layer.value.draw()
   rebindTextEvents()  // Привязываем обработчики для текстовых узлов
   rebindImageNodes()
+  rebindImageEvents()
   updatePreviews()
 }
 
@@ -807,9 +808,52 @@ const rebindImageNodes = () => {
         layer.value.batchDraw();
       }
       img.src = src;
+      
     }
   });
 }
+
+const attachImageListeners = (imgNode) => {
+  // Если у узла уже есть transformer, он мог быть уничтожен или не привязан.
+  // Создадим новый transformer для узла
+  const transformer = new Konva.Transformer({
+    node: imgNode,
+    enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+    keepRatio: true, // можно изменить, если хотите независимое масштабирование
+    anchorStroke: 'blue',
+    anchorFill: 'white',
+    anchorCornerRadius: 4,
+    anchorSize: 10,
+    borderStroke: 'blue',
+    borderDash: [4, 2],
+  });
+  layer.value.add(transformer);
+
+  // При клике на изображении — привязываем transformer к нему
+  imgNode.on('click', (e) => {
+    transformer.nodes([imgNode]);
+    layer.value.batchDraw();
+    e.cancelBubble = true;
+  });
+
+  // При клике вне изображения снимаем transformer с этого узла
+  stage.value.on('click', (e) => {
+    // Если клик не по данному imgNode (или его transformer)
+    if (e.target !== imgNode) {
+      transformer.nodes([]);
+      layer.value.batchDraw();
+    }
+  });
+};
+
+const rebindImageEvents = () => {
+  const imgNodes = layer.value.find('Image');
+  imgNodes.forEach((node) => {
+    // Если необходимо, сперва удалить старые обработчики, чтобы не накладывать их повторно.
+    // Затем привязать обработчики.
+    attachImageListeners(node);
+  });
+};
 
 const addImage = async () => {
   if (!fileDa) {
@@ -834,6 +878,37 @@ const addImage = async () => {
         layer.value.add(img)
         img.setAttr('src', imageObj.src);
         layer.value.draw()
+
+        const transformer = new Konva.Transformer({
+          node: img,
+          enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+          // Если нужно сохранять пропорции, установите:
+          keepRatio: true,
+          // Можно настроить стиль якорей
+          anchorStroke: 'blue',
+          anchorFill: 'white',
+          anchorCornerRadius: 4,
+          anchorSize: 10,
+          borderStroke: 'blue',
+          borderDash: [4, 2],
+        })
+        layer.value.add(transformer)
+        layer.value.draw()
+  
+        // Чтобы Transformer появлялся по клику на изображение:
+        img.on('click', (e) => {
+          transformer.nodes([img])
+          layer.value.draw()
+          e.cancelBubble = true
+        })
+  
+        // При клике вне изображения отключать Transformer:
+        stage.value.on('click', (e) => {
+          if (e.target !== img) {
+            transformer.nodes([])
+            layer.value.draw()
+          }
+        })
       }
       imageObj.src = e.target.result // Data URL - ПРАВИЛЬНОЕ МЕСТО
     }
@@ -857,6 +932,7 @@ const loadImagesInTempStage = (tempStage) => {
         };
         img.onerror = reject;
         img.src = src;
+        
       });
       promises.push(p);
     }
