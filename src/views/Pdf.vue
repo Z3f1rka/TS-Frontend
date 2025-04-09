@@ -72,6 +72,8 @@ import jsPDF from 'jspdf'
 const targetWidth = ref(595)
 const targetHeight = ref(842)
 
+const selectedNode = ref(null)
+
 const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
@@ -83,6 +85,22 @@ let leftPreviewContainer, rightPreviewContainer, leftPreviewImg, rightPreviewImg
 var pages = ref([])
 
 var currentPage = ref(0)
+
+window.addEventListener('keydown', (e) => {
+  if ((e.key === 'Delete' || e.key === 'Del') && selectedNode.value) {
+    // Если у выбранного узла сохранён transformer, сначала удалим его
+    if (selectedNode.value._transformer) {
+      // Очищаем связи и удаляем transformer
+      selectedNode.value._transformer.nodes([])
+      selectedNode.value._transformer.destroy()
+      selectedNode.value._transformer = null
+    }
+    // Удаляем сам узел
+    selectedNode.value.remove()
+    selectedNode.value = null
+    layer.value.draw()
+  }
+})
 
 const saveScene = async () => {
   if (!stageContainer.value) {
@@ -266,6 +284,7 @@ const attachTextListeners = (textNode) => {
     // Отмена всплытия, чтобы Transformer не снимался при клике на stage
     e.cancelBubble = true
   })
+  textNode._transformer = transformer
 
   // При клике вне узла снимаем Transformer (если нужно, можно привязать это глобально)
   stage.value.on('click', (e) => {
@@ -275,18 +294,29 @@ const attachTextListeners = (textNode) => {
       layer.value.draw()
     }
   })
-   textNode.on('dblclick', () => {
+
+  // При клике по тексту:
+  textNode.on('click', (e) => {
+    // Привязываем Transformer, если вы его используете – можно оставить этот код.
+    transformer.nodes([textNode])
+    // Устанавливаем выбранный узел
+    selectedNode.value = textNode
+    layer.value.batchDraw()
+    e.cancelBubble = true
+  })
+
+  textNode.on('dblclick', () => {
     // Расположение с учетом абсолютных координат текстового узла
-    const absPos = textNode.getAbsolutePosition();
-    const stageBox = stage.value.container().getBoundingClientRect();
+    const absPos = textNode.getAbsolutePosition()
+    const stageBox = stage.value.container().getBoundingClientRect()
     // Скрываем текстовый узел и Transformer
-    transformer.hide();
-    textNode.hide();
-    layer.value.batchDraw();
+    transformer.hide()
+    textNode.hide()
+    layer.value.batchDraw()
 
     // Создаем textarea и позиционируем её относительно absPos
-    const textarea = document.createElement('textarea');
-    textarea.value = textNode.text();
+    const textarea = document.createElement('textarea')
+    textarea.value = textNode.text()
 
     Object.assign(textarea.style, {
       position: 'absolute',
@@ -303,7 +333,7 @@ const attachTextListeners = (textNode) => {
       zIndex: '1000',
       lineHeight: textNode.lineHeight().toString(),
       whiteSpace: 'nowrap',
-    });
+    })
     const angle = textNode.rotation()
     textarea.style.transform = `rotate(${angle}deg)`
     // Для корректного позиционирования измените точку трансформации, например:
@@ -320,16 +350,16 @@ const attachTextListeners = (textNode) => {
     document.body.appendChild(textarea)
 
     const autosizeTextarea = () => {
-      textarea.style.height = 'auto';
-      textarea.style.width = 'auto';
-      const paddingX = 8;
-      const paddingY = 8;
-      textarea.style.height = textarea.scrollHeight + paddingY + 'px';
-      textarea.style.width = textarea.scrollWidth + paddingX + 'px';
-    };
-    autosizeTextarea();
-    textarea.addEventListener('input', autosizeTextarea);
-    textarea.focus();
+      textarea.style.height = 'auto'
+      textarea.style.width = 'auto'
+      const paddingX = 8
+      const paddingY = 8
+      textarea.style.height = textarea.scrollHeight + paddingY + 'px'
+      textarea.style.width = textarea.scrollWidth + paddingX + 'px'
+    }
+    autosizeTextarea()
+    textarea.addEventListener('input', autosizeTextarea)
+    textarea.focus()
 
     // 🎛 Панель стилей
     const toolbar = document.createElement('div')
@@ -756,13 +786,7 @@ const attachImageListeners = (imgNode) => {
     borderDash: [4, 2],
   })
   layer.value.add(transformer)
-
-  // При клике на изображении — привязываем transformer к нему
-  imgNode.on('click', (e) => {
-    transformer.nodes([imgNode])
-    layer.value.batchDraw()
-    e.cancelBubble = true
-  })
+  imgNode._transformer = transformer
 
   // При клике вне изображения снимаем transformer с этого узла
   stage.value.on('click', (e) => {
@@ -771,6 +795,14 @@ const attachImageListeners = (imgNode) => {
       transformer.nodes([])
       layer.value.batchDraw()
     }
+  })
+
+  imgNode.on('click', (e) => {
+    transformer.nodes([imgNode])
+    selectedNode.value = imgNode
+    console.log(selectedNode)
+    layer.value.batchDraw()
+    e.cancelBubble = true
   })
 }
 
@@ -807,36 +839,7 @@ const addImage = async () => {
         img.setAttr('src', imageObj.src)
         layer.value.draw()
 
-        const transformer = new Konva.Transformer({
-          node: img,
-          enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-          // Если нужно сохранять пропорции, установите:
-          keepRatio: true,
-          // Можно настроить стиль якорей
-          anchorStroke: 'blue',
-          anchorFill: 'white',
-          anchorCornerRadius: 4,
-          anchorSize: 10,
-          borderStroke: 'blue',
-          borderDash: [4, 2],
-        })
-        layer.value.add(transformer)
-        layer.value.draw()
-
-        // Чтобы Transformer появлялся по клику на изображение:
-        img.on('click', (e) => {
-          transformer.nodes([img])
-          layer.value.draw()
-          e.cancelBubble = true
-        })
-
-        // При клике вне изображения отключать Transformer:
-        stage.value.on('click', (e) => {
-          if (e.target !== img) {
-            transformer.nodes([])
-            layer.value.draw()
-          }
-        })
+        attachImageListeners(img)
       }
       imageObj.src = e.target.result // Data URL - ПРАВИЛЬНОЕ МЕСТО
     }
