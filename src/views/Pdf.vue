@@ -161,6 +161,10 @@ const addText = (data = {}) => {
   })
 
   textNode.on('dblclick', () => {
+    if (textNode.text() == "Введите текст"){
+          textNode.text('')
+    textNode.fill('black')
+    }
     border.visible(false)
     rotationHandle.visible(false)
     layer.value.batchDraw()
@@ -555,29 +559,36 @@ rightSection.style.alignItems = 'flex-end'
     }
 
     const applyChanges = () => {
-      textNode.text(textarea.value)
-      textNode.fontSize(parseInt(fontSizeInput.value))
+  textNode.fontSize(parseInt(fontSizeInput.value))
 
-      // Определяем комбинированный стиль для fontStyle
-      const isBold = textarea.style.fontWeight === 'bold'
-      const isItalic = textarea.style.fontStyle === 'italic'
-      let fontStyle = 'normal'
-      if (isBold && isItalic) fontStyle = 'bold italic'
-      else if (isBold) fontStyle = 'bold'
-      else if (isItalic) fontStyle = 'italic'
-      textNode.fontStyle(fontStyle)
+  // Определяем комбинированный стиль для fontStyle
+  const isBold = textarea.style.fontWeight === 'bold'
+  const isItalic = textarea.style.fontStyle === 'italic'
+  let fontStyle = 'normal'
+  if (isBold && isItalic) fontStyle = 'bold italic'
+  else if (isBold) fontStyle = 'bold'
+  else if (isItalic) fontStyle = 'italic'
+  textNode.fontStyle(fontStyle)
 
-      // Применяем подчёркивание
-      textNode.textDecoration(
-        textarea.style.textDecoration.includes('underline') ? 'underline' : '',
-      )
+  textNode.textDecoration(
+    textarea.style.textDecoration.includes('underline') ? 'underline' : '',
+  )
 
-      // Сохраняем выбранный шрифт
-      textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
-      layer.value.draw()
-      removeUI()
-      textNode.show()
-    }
+  textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
+
+  // Если поле пустое, устанавливаем placeholder "Введите текст" с полупрозрачным цветом
+  if (textarea.value.trim() === '') {
+    textNode.text('Введите текст')
+    textNode.fill('rgba(0, 0, 0, 0.4)')
+  } else {
+    textNode.text(textarea.value)
+    // При необходимости можно оставить или сбросить цвет, например:
+    // textNode.fill('black')
+  }
+
+  layer.value.draw()
+  removeUI()
+  textNode.show()}
 
     const handleOutsideClick = (e) => {
       if (e.target !== textarea && !toolbar.contains(e.target)) {
