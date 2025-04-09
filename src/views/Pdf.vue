@@ -126,6 +126,7 @@ const loadPage = (index) => {
   }
   layer.value.draw()
   rebindTextEvents()  // Привязываем обработчики для текстовых узлов
+  rebindImageNodes()
   updatePreviews()
 }
 
@@ -795,6 +796,21 @@ const handleFileUpload = (event) => {
   addImage() // Вызываем addImage после выбора файла
 }
 
+const rebindImageNodes = () => {
+  const imageNodes = layer.value.find('Image');
+  imageNodes.forEach((node) => {
+    const src = node.getAttr('src'); // наш кастомный атрибут
+    if (src) {
+      const img = new Image();
+      img.onload = () => {
+        node.image(img);
+        layer.value.batchDraw();
+      }
+      img.src = src;
+    }
+  });
+}
+
 const addImage = async () => {
   if (!fileDa) {
     console.warn('No file selected.')
@@ -816,6 +832,7 @@ const addImage = async () => {
           draggable: true,
         })
         layer.value.add(img)
+        img.setAttr('src', imageObj.src);
         layer.value.draw()
       }
       imageObj.src = e.target.result // Data URL - ПРАВИЛЬНОЕ МЕСТО
@@ -826,7 +843,28 @@ const addImage = async () => {
   }
 }
 
-const updatePreviews = () => {
+const loadImagesInTempStage = (tempStage) => {
+  const imageNodes = tempStage.find('Image');
+  const promises = [];
+  imageNodes.forEach((node) => {
+    const src = node.getAttr('src'); // наш кастомный атрибут, который мы записывали при создании
+    if (src) {
+      const p = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          node.image(img);
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
+      promises.push(p);
+    }
+  });
+  return Promise.all(promises);
+};
+
+const updatePreviews = async () => {
   // Предыдущая страница
   if (currentPage.value > 0) {
     const tempContainer = document.createElement('div');
@@ -834,12 +872,16 @@ const updatePreviews = () => {
     tempContainer.style.visibility = 'hidden';
     document.body.appendChild(tempContainer);
     const tempStage = Konva.Node.create(pages.value[currentPage.value - 1], tempContainer);
-    const dataURL = tempStage.toDataURL();
-    leftPreviewImg.src = dataURL;
+    try {
+      await loadImagesInTempStage(tempStage);
+      const dataURL = tempStage.toDataURL();
+      leftPreviewImg.src = dataURL;
+    } catch (err) {
+      console.error("Ошибка загрузки изображений в предпросмотре:", err);
+    }
     tempStage.destroy();
     document.body.removeChild(tempContainer);
     leftPreviewContainer.style.display = 'block';
-    console.log('okl')
   } else {
     leftPreviewContainer.style.display = 'none';
   }
@@ -850,22 +892,20 @@ const updatePreviews = () => {
     tempContainer.style.visibility = 'hidden';
     document.body.appendChild(tempContainer);
     const tempStage = Konva.Node.create(pages.value[currentPage.value + 1], tempContainer);
-    const dataURL = tempStage.toDataURL();
-    rightPreviewImg.src = dataURL;
+    try {
+      await loadImagesInTempStage(tempStage);
+      const dataURL = tempStage.toDataURL();
+      rightPreviewImg.src = dataURL;
+    } catch (err) {
+      console.error("Ошибка загрузки изображений в предпросмотре:", err);
+    }
     tempStage.destroy();
     document.body.removeChild(tempContainer);
     rightPreviewContainer.style.display = 'block';
-    console.log('okr')
   } else {
     rightPreviewContainer.style.display = 'none';
   }
-    const checkPosition = () => {
-  console.log("Left preview container position:", leftPreviewContainer.getBoundingClientRect());
-  console.log("Right preview container position:", rightPreviewContainer.getBoundingClientRect());
-}
-// Вызываем после добавления контейнеров в stageContainer
-checkPosition();
-}
+};
 
 onMounted(() => {
   const width = 595
