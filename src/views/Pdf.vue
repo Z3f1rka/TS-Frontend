@@ -1,31 +1,49 @@
 <template>
-  <div class="editor-container flex flex-col h-screen">
-    <!-- Контейнер листа, он занимает всё доступное пространство, с нижним отступом чтобы не перекрывать панель инструментов -->
-    <div class="sheet-container flex-grow flex justify-center items-center bg-gray-200 pb-32">
+<div class="editor-container flex flex-col h-screen relative">
+    <!-- Контейнер листа с отступом снизу для панели инструментов -->
+    <div class="sheet-container flex-grow flex justify-center items-center bg-gray-200 pb-32 relative">
       <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
+
+      <!-- Кнопка перехода на предыдущую страницу (слева) -->
+      <button 
+        class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-r-lg p-4 text-4xl focus:outline-none"
+        @click="prevPage">
+        &#8249;
+      </button>
+
+      <!-- Кнопка перехода на следующую страницу (справа) -->
+      <button 
+        class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-l-lg p-4 text-4xl focus:outline-none"
+        @click="nextPage">
+        &#8250;
+      </button>
+
+      <!-- Кнопка добавления новой страницы (справа внизу) -->
+      <button 
+        class="absolute right-4 bottom-4 bg-green-500 text-white hover:bg-green-600 rounded-full w-16 h-16 text-4xl flex items-center justify-center focus:outline-none"
+        @click="addPage">
+        +
+      </button>
     </div>
 
-    <!-- Нижняя панель инструментов -->
+    <!-- Нижняя панель инструментов (с сохранением существующей логики) -->
     <div class="fixed bottom-3 left-0 right-0 flex justify-center">
       <div class="toolbar flex bg-white rounded-t-xl rounded-b-xl p-4 space-x-4 shadow-md">
         <button
           class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
-          @click="addText()"
-        >
+          @click="addText()">
           Добавить текст
         </button>
         <div class="border-r border-gray-300"></div>
         <button
           class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
-          @click="addImage"
-        >
+          @click="addImage">
           Добавить изображение
         </button>
         <div class="border-r border-gray-300"></div>
         <button
           class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
-          @click="saveScene"
-        >
+          @click="saveScene">
           Сохранить
         </button>
       </div>
@@ -40,7 +58,11 @@ import Konva from 'konva'
 const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
-var resData = { elements: [] }
+var resData = { pages: [{elements: []}] }
+
+var pages = ref([])
+
+var currentPage = ref(0)
 
 const saveScene = () => {
   const sceneData = JSON.parse(stage.value.toJSON())
@@ -50,6 +72,100 @@ const saveScene = () => {
       resData.elements.push(element)
     }
   })
+}
+
+const saveCurrentPage = () => {
+  if (stage.value) {
+    // Сохраняем текущий stage как JSON (или сохраняем объект stage, если планируете именно stage)
+    pages.value[currentPage.value] = stage.value.toJSON()
+    console.log("save", pages.value[currentPage.value])
+  }
+}
+
+const loadPage = (index) => {
+  console
+  // Очистка контейнера
+  stageContainer.value.innerHTML = ''
+  // Если уже существующая страница в pages, то создаем stage из JSON
+  if (pages.value[index]) {
+    const newStage = Konva.Node.create(pages.value[index], stageContainer.value)
+    stage.value = newStage
+    // Находим первый Layer (предполагается, что он единственный)  
+    layer.value = newStage.findOne('Layer')
+  } else {
+    // Если страницы нет, создаем пустой stage
+    stage.value = new Konva.Stage({
+      container: stageContainer.value,
+      width: 595,
+      height: 842,
+      draggable: false,
+    })
+    layer.value = new Konva.Layer()
+    stage.value.add(layer.value)
+    // Добавляем фон (пустой лист)
+    const background = new Konva.Rect({
+      x: 0,
+      y: 0,
+      width: 595,
+      height: 842,
+      fill: '#fff',
+      stroke: '#000',
+      strokeWidth: 1,
+    })
+    layer.value.add(background)
+    layer.value.draw()
+  }
+}
+
+const addPage = () => {
+  // Сохраняем текущую страницу
+  saveCurrentPage()
+  // Создаем новый stage (новая страница)
+  stageContainer.value.innerHTML = '' // очищаем контейнер
+  const newStage = new Konva.Stage({
+    container: stageContainer.value,
+    width: 595,
+    height: 842,
+    draggable: false,
+  })
+  const newLayer = new Konva.Layer()
+  newStage.add(newLayer)
+  const background = new Konva.Rect({
+    x: 0,
+    y: 0,
+    width: 595,
+    height: 842,
+    fill: '#fff',
+    stroke: '#000',
+    strokeWidth: 1,
+  })
+  newLayer.add(background)
+  newLayer.draw()
+  // Добавляем новый stage в массив страниц
+  pages.value.push(newStage.toJSON())
+  currentPage.value = pages.value.length - 1
+  stage.value = newStage
+  layer.value = newLayer
+}
+
+const prevPage = () => {
+  console.log("mb prev", currentPage.value)
+  if (currentPage.value > 0) {
+    console.log("prev")
+    saveCurrentPage()
+    currentPage.value--
+    loadPage(currentPage.value)
+  }
+}
+
+const nextPage = () => {
+  console.log("mb next", currentPage.value)
+  if (currentPage.value < pages.value.length - 1) {
+    console.log("next")
+    saveCurrentPage()
+    currentPage.value++
+    loadPage(currentPage.value)
+  }
 }
 
 const loadScene = (sceneData) => {
@@ -664,16 +780,15 @@ onMounted(() => {
   const width = 595
   const height = 842
 
-  stage.value = new Konva.Stage({
+  // Создаем первую страницу
+  const newStage = new Konva.Stage({
     container: stageContainer.value,
     width,
     height,
     draggable: false,
   })
-
-  layer.value = new Konva.Layer()
-  stage.value.add(layer.value)
-
+  const newLayer = new Konva.Layer()
+  newStage.add(newLayer)
   const background = new Konva.Rect({
     x: 0,
     y: 0,
@@ -683,8 +798,12 @@ onMounted(() => {
     stroke: '#000',
     strokeWidth: 1,
   })
+  newLayer.add(background)
+  newLayer.draw()
 
-  layer.value.add(background)
-  layer.value.draw()
+  pages.value.push(newStage.toJSON())
+  currentPage.value = 0
+  stage.value = newStage
+  layer.value = newLayer
 })
 </script>
