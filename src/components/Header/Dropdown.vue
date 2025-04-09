@@ -118,7 +118,7 @@ let data = defineProps({
           tabindex="-1"
           id="menu-item-1"
           ><div class="inline-flex items-center">
-            <img src="/location.png" style="width: 1.1vw; height: 1.1vw; margin-right: 0.6vw" />Мои
+            <img src="/file.png" style="width: 1.1vw; height: 1.1vw; margin-right: 0.6vw" />Мои
             проекты
           </div></a
         ></router-link

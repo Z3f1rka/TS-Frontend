@@ -147,9 +147,9 @@ const handleFileUpload = async (event) => {
         import.meta.env.VITE_FILES_API_URL +
         'files/download/' +
         encodeURIComponent(image).replace('(', '%28').replace(')', '%29')
-      console.log(imageUrl)
+
       const prof = await api.post(`auth/update`, {
-        avatar: imageUrl.value,
+        avatar: imageUrl.value
       })
       router.go(0)
     } catch (err) {
