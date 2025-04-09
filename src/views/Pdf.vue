@@ -83,38 +83,16 @@ const saveCurrentPage = () => {
 }
 
 const loadPage = (index) => {
-  console
-  // Очистка контейнера
   stageContainer.value.innerHTML = ''
-  // Если уже существующая страница в pages, то создаем stage из JSON
   if (pages.value[index]) {
     const newStage = Konva.Node.create(pages.value[index], stageContainer.value)
     stage.value = newStage
-    // Находим первый Layer (предполагается, что он единственный)  
     layer.value = newStage.findOne('Layer')
   } else {
-    // Если страницы нет, создаем пустой stage
-    stage.value = new Konva.Stage({
-      container: stageContainer.value,
-      width: 595,
-      height: 842,
-      draggable: false,
-    })
-    layer.value = new Konva.Layer()
-    stage.value.add(layer.value)
-    // Добавляем фон (пустой лист)
-    const background = new Konva.Rect({
-      x: 0,
-      y: 0,
-      width: 595,
-      height: 842,
-      fill: '#fff',
-      stroke: '#000',
-      strokeWidth: 1,
-    })
-    layer.value.add(background)
-    layer.value.draw()
+    createEmptyPage()
   }
+  layer.value.draw()
+  rebindTextEvents()  // Привязываем обработчики для текстовых узлов
 }
 
 const addPage = () => {
@@ -221,7 +199,19 @@ const addText = (data = {}) => {
   layer.value.add(textNode)
   layer.value.draw()
   console.log(textNode)
+  attachTextListeners(textNode)
+}
 
+const rebindTextEvents = () => {
+  // Найдем все текстовые узлы в текущем слое:
+  const textNodes = layer.value.find('Text')
+  textNodes.forEach((node) => {
+    attachTextListeners(node)
+  })
+  layer.value.batchDraw()
+}
+
+const attachTextListeners = (textNode) => {
   // Создаем рамку для выделения и ручку вращения
   const border = new Konva.Rect({
     stroke: 'blue',
