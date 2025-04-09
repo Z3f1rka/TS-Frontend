@@ -1,8 +1,11 @@
 <template>
 <div class="editor-container flex flex-col h-screen relative">
-    <!-- Контейнер листа с отступом снизу для панели инструментов -->
-    <div class="sheet-container flex-grow flex justify-center items-center bg-gray-200 pb-32 relative">
+     <!-- Контейнер листа, он занимает всё доступное пространство -->
+    <div class="sheet-wrapper relative flex-grow flex justify-center items-center bg-gray-200 pb-32">
+      <!-- Контейнер основного холста -->
       <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
+      <!-- Контейнер предпросмотров -->
+      <div ref="previewContainer" class="preview-container pointer-events-none"></div>
 
       <!-- Кнопка перехода на предыдущую страницу (слева) -->
       <button 
@@ -58,7 +61,10 @@ import Konva from 'konva'
 const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
+const previewContainer = ref(null)
 var resData = { pages: [{elements: []}] }
+
+let leftPreviewContainer, rightPreviewContainer, leftPreviewImg, rightPreviewImg
 
 var pages = ref([])
 
@@ -93,6 +99,7 @@ const loadPage = (index) => {
   }
   layer.value.draw()
   rebindTextEvents()  // Привязываем обработчики для текстовых узлов
+  updatePreviews()
 }
 
 const addPage = () => {
@@ -124,25 +131,26 @@ const addPage = () => {
   currentPage.value = pages.value.length - 1
   stage.value = newStage
   layer.value = newLayer
+  updatePreviews()
 }
 
 const prevPage = () => {
-  console.log("mb prev", currentPage.value)
   if (currentPage.value > 0) {
     console.log("prev")
     saveCurrentPage()
     currentPage.value--
     loadPage(currentPage.value)
+    updatePreviews()
   }
 }
 
 const nextPage = () => {
-  console.log("mb next", currentPage.value)
   if (currentPage.value < pages.value.length - 1) {
     console.log("next")
     saveCurrentPage()
     currentPage.value++
     loadPage(currentPage.value)
+    updatePreviews()
   }
 }
 
@@ -766,11 +774,52 @@ const addImage = () => {
   }
 }
 
+const updatePreviews = () => {
+  // Предыдущая страница
+  if (currentPage.value > 0) {
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.visibility = 'hidden';
+    document.body.appendChild(tempContainer);
+    const tempStage = Konva.Node.create(pages.value[currentPage.value - 1], tempContainer);
+    const dataURL = tempStage.toDataURL();
+    leftPreviewImg.src = dataURL;
+    tempStage.destroy();
+    document.body.removeChild(tempContainer);
+    leftPreviewContainer.style.display = 'block';
+    console.log('okl')
+  } else {
+    leftPreviewContainer.style.display = 'none';
+  }
+  // Следующая страница
+  if (currentPage.value < pages.value.length - 1) {
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.visibility = 'hidden';
+    document.body.appendChild(tempContainer);
+    const tempStage = Konva.Node.create(pages.value[currentPage.value + 1], tempContainer);
+    const dataURL = tempStage.toDataURL();
+    rightPreviewImg.src = dataURL;
+    tempStage.destroy();
+    document.body.removeChild(tempContainer);
+    rightPreviewContainer.style.display = 'block';
+    console.log('okr')
+  } else {
+    rightPreviewContainer.style.display = 'none';
+  }
+    const checkPosition = () => {
+  console.log("Left preview container position:", leftPreviewContainer.getBoundingClientRect());
+  console.log("Right preview container position:", rightPreviewContainer.getBoundingClientRect());
+}
+// Вызываем после добавления контейнеров в stageContainer
+checkPosition();
+}
+
 onMounted(() => {
   const width = 595
   const height = 842
 
-  // Создаем первую страницу
+  // Создаем основную страницу (stage)
   const newStage = new Konva.Stage({
     container: stageContainer.value,
     width,
@@ -795,5 +844,47 @@ onMounted(() => {
   currentPage.value = 0
   stage.value = newStage
   layer.value = newLayer
+
+  // Создаем контейнеры предпросмотра и добавляем их в previewContainer
+  leftPreviewContainer = document.createElement('div')
+  Object.assign(leftPreviewContainer.style, {
+    position: 'absolute',
+    left: '50px',
+    top: '40%',
+    transform: 'translateY(-30%)',
+    pointerEvents: 'none',
+    zIndex: '900',
+    display: 'none',
+  })
+  rightPreviewContainer = document.createElement('div')
+  Object.assign(rightPreviewContainer.style, {
+    position: 'absolute',
+    right: '50px',
+    top: '40%',
+    transform: 'translateY(-30%)',
+    pointerEvents: 'none',
+    zIndex: '900',
+    display: 'none',
+  })
+  leftPreviewImg = document.createElement('img')
+  Object.assign(leftPreviewImg.style, {
+    maxWidth: '300px',
+    maxHeight: '90vh',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+  })
+  rightPreviewImg = document.createElement('img')
+  Object.assign(rightPreviewImg.style, {
+    maxWidth: '300px',
+    maxHeight: '90vh',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+  })
+  leftPreviewContainer.appendChild(leftPreviewImg)
+  rightPreviewContainer.appendChild(rightPreviewImg)
+  previewContainer.value.appendChild(leftPreviewContainer)
+  previewContainer.value.appendChild(rightPreviewContainer)
+
+  updatePreviews()
 })
 </script>
