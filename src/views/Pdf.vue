@@ -1,9 +1,10 @@
 <template>
-<div class="editor-container flex flex-col h-screen relative">
-     <!-- Контейнер листа, он занимает всё доступное пространство -->
-    <div class="sheet-wrapper relative flex-grow flex justify-center items-center bg-gray-200 pb-32">
-      <!-- Контейнер основного холста -->
-      <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
+  <div>
+    <Header class="nav shadow-md z-50" :scroll="false" />
+    <div class="editor-container flex flex-col h-screen bg-gray-200" style="padding-top: 8vw">
+      <!-- Контейнер листа, он занимает всё доступное пространство, с нижним отступом чтобы не перекрывать панель инструментов -->
+      <div class="sheet-container flex-grow flex justify-center items-center pb-32 bg-gray-200">
+        <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
       <!-- Контейнер предпросмотров -->
       <div ref="previewContainer" class="preview-container pointer-events-none"></div>
 
@@ -27,36 +28,46 @@
         @click="addPage">
         +
       </button>
-    </div>
+      </div>
 
-    <!-- Нижняя панель инструментов (с сохранением существующей логики) -->
-    <div class="fixed bottom-3 left-0 right-0 flex justify-center">
-      <div class="toolbar flex bg-white rounded-t-xl rounded-b-xl p-4 space-x-4 shadow-md">
-        <button
-          class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
-          @click="addText()">
-          Добавить текст
-        </button>
-        <div class="border-r border-gray-300"></div>
-        <button
-          class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
-          @click="addImage">
-          Добавить изображение
-        </button>
-        <div class="border-r border-gray-300"></div>
-        <button
-          class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
-          @click="saveScene">
-          Сохранить
-        </button>
+      <!-- Нижняя панель инструментов -->
+      <div class="fixed bottom-3 left-0 right-0 flex justify-center">
+        <div class="toolbar flex bg-white rounded-t-xl rounded-b-xl p-4 space-x-4 shadow-md">
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="addText()"
+          >
+            Добавить текст
+          </button>
+          <div class="border-r border-gray-300"></div>
+          <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none" />
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="uploadAvatar"
+          >
+            Добавить изображение
+          </button>
+          <div class="border-r border-gray-300"></div>
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="saveScene"
+          >
+            Сохранить
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import Header from '@/components/Header/Header.vue'
 import { ref, onMounted, nextTick } from 'vue'
 import Konva from 'konva'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+const targetWidth = ref(595)
+const targetHeight = ref(842)
 
 const stage = ref(null)
 const layer = ref(null)
@@ -70,14 +81,30 @@ var pages = ref([])
 
 var currentPage = ref(0)
 
-const saveScene = () => {
-  const sceneData = JSON.parse(stage.value.toJSON())
-  resData.elements = []
-  sceneData.children[0].children.forEach((element) => {
-    if (element.className == 'Text') {
-      resData.elements.push(element)
-    }
-  })
+const saveScene = async () => {
+  if (!stageContainer.value) {
+    console.error('Target area not found.')
+    return
+  }
+  try {
+    const scale = 2
+
+    const canvas = await html2canvas(stageContainer.value, {
+      scale: scale,
+    })
+
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: [canvas.width / scale, canvas.height / scale],
+    })
+
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / scale, canvas.height / scale)
+    pdf.save('area.pdf')
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+  }
 }
 
 const saveCurrentPage = () => {
@@ -275,9 +302,9 @@ const attachTextListeners = (textNode) => {
   })
 
   textNode.on('dblclick', () => {
-    if (textNode.text() == "Введите текст"){
-          textNode.text('')
-    textNode.fill('black')
+    if (textNode.text() == 'Введите текст') {
+      textNode.text('')
+      textNode.fill('black')
     }
     border.visible(false)
     rotationHandle.visible(false)
@@ -491,7 +518,7 @@ const attachTextListeners = (textNode) => {
     const colorBtn = document.createElement('button')
     colorBtn.style.padding = '4px 8px'
     colorBtn.style.width = '100%'
-    colorBtn.classList.add("rounded-md")
+    colorBtn.classList.add('rounded-md')
     updateColorBtnAppearance(getHexColor(textNode.fill()) || '#000000') // инициализация по цвету текста
     colorBtn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -593,9 +620,9 @@ const attachTextListeners = (textNode) => {
     leftSection.style.gap = '8px'
 
     const rightSection = document.createElement('div')
-rightSection.style.display = 'flex'
-rightSection.style.flexDirection = 'column'
-rightSection.style.alignItems = 'flex-end'
+    rightSection.style.display = 'flex'
+    rightSection.style.flexDirection = 'column'
+    rightSection.style.alignItems = 'flex-end'
 
     // Ряд 1: Изменение размера шрифта
     const row1 = document.createElement('div')
@@ -625,7 +652,6 @@ rightSection.style.alignItems = 'flex-end'
     leftSection.appendChild(row1)
     leftSection.appendChild(row2)
     leftSection.appendChild(row3)
-
 
     // Font selector — в правую часть
     rightSection.appendChild(fontSelector)
@@ -673,36 +699,37 @@ rightSection.style.alignItems = 'flex-end'
     }
 
     const applyChanges = () => {
-  textNode.fontSize(parseInt(fontSizeInput.value))
+      textNode.fontSize(parseInt(fontSizeInput.value))
 
-  // Определяем комбинированный стиль для fontStyle
-  const isBold = textarea.style.fontWeight === 'bold'
-  const isItalic = textarea.style.fontStyle === 'italic'
-  let fontStyle = 'normal'
-  if (isBold && isItalic) fontStyle = 'bold italic'
-  else if (isBold) fontStyle = 'bold'
-  else if (isItalic) fontStyle = 'italic'
-  textNode.fontStyle(fontStyle)
+      // Определяем комбинированный стиль для fontStyle
+      const isBold = textarea.style.fontWeight === 'bold'
+      const isItalic = textarea.style.fontStyle === 'italic'
+      let fontStyle = 'normal'
+      if (isBold && isItalic) fontStyle = 'bold italic'
+      else if (isBold) fontStyle = 'bold'
+      else if (isItalic) fontStyle = 'italic'
+      textNode.fontStyle(fontStyle)
 
-  textNode.textDecoration(
-    textarea.style.textDecoration.includes('underline') ? 'underline' : '',
-  )
+      textNode.textDecoration(
+        textarea.style.textDecoration.includes('underline') ? 'underline' : '',
+      )
 
-  textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
+      textNode.fontFamily(textarea.style.fontFamily || 'Roboto')
 
-  // Если поле пустое, устанавливаем placeholder "Введите текст" с полупрозрачным цветом
-  if (textarea.value.trim() === '') {
-    textNode.text('Введите текст')
-    textNode.fill('rgba(0, 0, 0, 0.4)')
-  } else {
-    textNode.text(textarea.value)
-    // При необходимости можно оставить или сбросить цвет, например:
-    // textNode.fill('black')
-  }
+      // Если поле пустое, устанавливаем placeholder "Введите текст" с полупрозрачным цветом
+      if (textarea.value.trim() === '') {
+        textNode.text('Введите текст')
+        textNode.fill('rgba(0, 0, 0, 0.4)')
+      } else {
+        textNode.text(textarea.value)
+        // При необходимости можно оставить или сбросить цвет, например:
+        // textNode.fill('black')
+      }
 
-  layer.value.draw()
-  removeUI()
-  textNode.show()}
+      layer.value.draw()
+      removeUI()
+      textNode.show()
+    }
 
     const handleOutsideClick = (e) => {
       if (e.target !== textarea && !toolbar.contains(e.target)) {
@@ -756,21 +783,46 @@ rightSection.style.alignItems = 'flex-end'
     }
   })
 }
+const fileInput = ref(null)
+let fileDa = null // Переменная для хранения выбранного файла
 
-const addImage = () => {
-  const imageObj = new Image()
-  imageObj.src = 'https://konvajs.org/assets/yoda.jpg'
-  imageObj.onload = () => {
-    const img = new Konva.Image({
-      x: 100,
-      y: 100,
-      image: imageObj,
-      width: 150,
-      height: 150,
-      draggable: true,
-    })
-    layer.value.add(img)
-    layer.value.draw()
+const uploadAvatar = () => {
+  fileInput.value.click()
+}
+
+const handleFileUpload = (event) => {
+  fileDa = event.target.files[0] // Сохраняем файл
+  addImage() // Вызываем addImage после выбора файла
+}
+
+const addImage = async () => {
+  if (!fileDa) {
+    console.warn('No file selected.')
+    return
+  }
+
+  try {
+    // Создаем Blob из File (необязательно)
+    const blob = new Blob([fileDa], { type: fileDa.type })
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const imageObj = new Image()
+      imageObj.onload = () => {
+        const img = new Konva.Image({
+          x: 100,
+          y: 100,
+          image: imageObj,
+          draggable: true,
+        })
+        layer.value.add(img)
+        layer.value.draw()
+      }
+      imageObj.src = e.target.result // Data URL - ПРАВИЛЬНОЕ МЕСТО
+    }
+    reader.readAsDataURL(blob) // Читаем BLOB как Data URL
+  } catch (error) {
+    console.error('Error loading image:', error)
   }
 }
 
