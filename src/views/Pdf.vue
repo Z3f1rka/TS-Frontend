@@ -2,45 +2,49 @@
   <div>
     <Header class="nav shadow-md z-50" :scroll="false" />
     <div class="editor-container flex flex-col h-screen bg-gray-200" style="padding-top: 8vw">
+      <button
+        class="absolute top-4 left-4 text-slate-100 hover:text-black bg-blue-500 rounded-lg text-center justify-center self-center"
+        style="
+          font-size: 2vw;
+          margin-top: 6vw;
+          padding: 0.2vw 0.6vw 0.2vw 0.6vw;
+          transition: all 0.1 ease;
+        "
+        @click="goBack"
+      >
+        &#8592;
+        <!-- Стрелка назад -->
+      </button>
       <!-- Контейнер листа, он занимает всё доступное пространство, с нижним отступом чтобы не перекрывать панель инструментов -->
       <div class="sheet-container flex-grow flex justify-center items-center pb-32 bg-gray-200">
-        <div ref="stageContainer" class="stage-container bg-white shadow-md"></div>
+        <div ref="stageContainer" class="stage-container bg-white shadow-md z-10"></div>
         <!-- Контейнер предпросмотров -->
         <div ref="previewContainer" class="preview-container pointer-events-none"></div>
 
         <!-- Кнопка перехода на предыдущую страницу (слева) -->
-        <button
-          class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-r-lg p-4 text-4xl focus:outline-none"
-          @click="prevPage"
-        >
-          &#8249;
-        </button>
-
-        <!-- Кнопка перехода на следующую страницу (справа) -->
-        <button
-          class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 hover:text-black hover:bg-gray-200 rounded-l-lg p-4 text-4xl focus:outline-none"
-          @click="nextPage"
-        >
-          &#8250;
-        </button>
-
-        <!-- Кнопка добавления новой страницы (справа внизу) -->
-        <button
-          class="absolute right-4 bottom-4 bg-green-500 text-white hover:bg-green-600 rounded-full w-16 h-16 text-4xl flex items-center justify-center focus:outline-none"
-          @click="addPage"
-        >
-          +
-        </button>
-        <button 
-  class="absolute right-4 bottom-24 bg-red-500 text-white hover:bg-red-600 rounded-full w-16 h-16 text-4xl flex items-center justify-center focus:outline-none"
-  @click="deleteCurrentPage">
-  &times;
-</button>
       </div>
 
       <!-- Нижняя панель инструментов -->
-      <div class="fixed bottom-3 left-0 right-0 flex justify-center">
+      <div class="fixed bottom-3 left-0 right-0 flex justify-center z-20">
         <div class="toolbar flex bg-white rounded-t-xl rounded-b-xl p-4 space-x-4 shadow-md">
+          <button
+            class="tool-btn hover:text-black transform hover:scale-105 transition-all"
+            style="font-size: 1.7vw"
+            @click="prevPage"
+          >
+            &#8249;
+          </button>
+          <div class="border-r border-gray-300"></div>
+          <input class="border-slate-400 border-2 rounded-md" v-model="PageName" />
+          <button
+            class="tool-btn hover:text-black transform hover:scale-105 transition-all"
+            style="color: #007dfe"
+            @click="SavePage()"
+          >
+            Сохранить
+          </button>
+          <div class="border-r border-gray-300"></div>
+
           <button
             class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
             @click="addText()"
@@ -67,7 +71,22 @@
             class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
             @click="saveScene"
           >
-            Сохранить
+            Скачать
+          </button>
+          <div class="border-r border-gray-300"></div>
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="addPage"
+          >
+            +
+          </button>
+          <div class="border-r border-gray-300"></div>
+          <button
+            style="font-size: 1.7vw"
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="nextPage"
+          >
+            &#8250;
           </button>
         </div>
       </div>
@@ -77,12 +96,17 @@
 
 <script setup>
 import Header from '@/components/Header/Header.vue'
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import Konva from 'konva'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { useRoute, useRouter } from 'vue-router'
+import api from '@/request'
 const targetWidth = ref(595)
 const targetHeight = ref(842)
+const router = useRouter()
+
+const id_obj = useRoute()['query']['id']
 
 const selectedNode = ref(null)
 
@@ -233,53 +257,144 @@ window.addEventListener('keydown', (e) => {
 const deleteCurrentPage = () => {
   // Если остается только одна страница - не даем удалить её
   if (pages.value.length <= 1) {
-    return;
-  }
-  // Удаляем страницу из массива
-  pages.value.splice(currentPage.value, 1);
-  // Если удалённая страница была последней, смещаем индекс на предыдущую страницу
-  if (currentPage.value >= pages.value.length) {
-    currentPage.value = pages.value.length - 1;
-  }
-  // Загружаем новую текущую страницу
-  loadPage(currentPage.value);
-};
-
-const saveScene = async () => {
-  if (!stageContainer.value) {
-    console.error('Target area not found.')
     return
   }
-  try {
-    const scale = 2
-
-    const canvas = await html2canvas(stageContainer.value, {
-      scale: scale,
-    })
-
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'px',
-      format: [canvas.width / scale, canvas.height / scale],
-    })
-
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / scale, canvas.height / scale)
-    pdf.save('area.pdf')
-  } catch (error) {
-    console.error('Error generating PDF:', error)
+  // Удаляем страницу из массива
+  pages.value.splice(currentPage.value, 1)
+  // Если удалённая страница была последней, смещаем индекс на предыдущую страницу
+  if (currentPage.value >= pages.value.length) {
+    currentPage.value = pages.value.length - 1
   }
+  // Загружаем новую текущую страницу
+  loadPage(currentPage.value)
+}
+
+let v = ref()
+let v1 = ref()
+async function f1() {
+  try {
+    const data = await api.get(`objects/get_by_id_one?object_id=${id_obj}`)
+    v.value = data
+    if (data == undefined) {
+      throw undefined
+    }
+    if (data === 1) {
+      v1.value = false
+    }
+  } catch (err) {
+    console.log(err)
+    alert('Такого пользователя')
+  }
+}
+f1()
+watch(
+  () => v.value,
+  () => {
+    pages.value = v.value.file.file
+    PageName.value = v.value.title
+    console.log(pages.value)
+    loadPage(0)
+    updatePreviews()
+  },
+)
+
+const goBack = () => {
+  router.go(-1)
+}
+const saveScene = async () => {
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'px',
+    format: [595, 842], // A4 в px при 72 DPI
+  })
+
+  for (let item = 0; item < pages.value.length; item++) {
+    loadPage(item)
+    updatePreviews()
+
+    if (!stageContainer.value) {
+      console.error('Target area not found.')
+      return
+    }
+
+    try {
+      const scale = 2
+
+      const canvas = await html2canvas(stageContainer.value, {
+        scale: scale,
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+
+      const width = canvas.width / scale
+      const height = canvas.height / scale
+
+      // Добавляем изображение на текущую страницу
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height)
+
+      // Добавляем новую страницу, если это не последняя
+      if (item < pages.value.length - 1) {
+        pdf.addPage([width, height])
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+    }
+  }
+
+  pdf.save('area.pdf')
 }
 
 const saveCurrentPage = () => {
   if (stage.value) {
     // Сохраняем текущий stage как JSON (или сохраняем объект stage, если планируете именно stage)
     pages.value[currentPage.value] = stage.value.toJSON()
+    console.log(pages.value)
+  }
+}
+
+const PageName = ref('')
+let user = ref()
+let auth = ref()
+async function f() {
+  try {
+    const data = await api.get('auth/me')
+    user.value = data
+    if (data == undefined) {
+      throw undefined
+    }
+    if (data === 1) {
+      auth.value = false
+    }
+  } catch (err) {
+    console.log(err)
+    alert('Такого пользователя')
+  }
+}
+f()
+watch(
+  () => user.value,
+  () => {
+    auth.value = true
+  },
+)
+const SavePage = async () => {
+  saveCurrentPage()
+  if (auth.value) {
+    const user_id = user.value.id
+    let data = {
+      title: PageName.value,
+      file: { file: pages.value },
+      main_object_id: id_obj,
+      user_id: user_id,
+    }
+    await api.post('objects/update', data)
+    router.push({ path: '/profile', query: { id: user_id } })
   }
 }
 
 const loadPage = (index) => {
   stageContainer.value.innerHTML = ''
+  console.log(stageContainer.value)
   if (pages.value[index]) {
     const newStage = Konva.Node.create(pages.value[index], stageContainer.value)
     stage.value = newStage
@@ -1117,11 +1232,12 @@ onMounted(() => {
   leftPreviewContainer = document.createElement('div')
   Object.assign(leftPreviewContainer.style, {
     position: 'absolute',
-    left: '50px',
     top: '40%',
     transform: 'translateY(-30%)',
+
+    left: '50px',
     pointerEvents: 'none',
-    zIndex: '900',
+    zIndex: '0',
     display: 'none',
   })
   rightPreviewContainer = document.createElement('div')
@@ -1131,20 +1247,20 @@ onMounted(() => {
     top: '40%',
     transform: 'translateY(-30%)',
     pointerEvents: 'none',
-    zIndex: '900',
+    zIndex: '0',
     display: 'none',
   })
   leftPreviewImg = document.createElement('img')
   Object.assign(leftPreviewImg.style, {
     maxWidth: '300px',
-    maxHeight: '90vh',
+    maxHeight: '60vh',
     border: '1px solid #ccc',
     borderRadius: '8px',
   })
   rightPreviewImg = document.createElement('img')
   Object.assign(rightPreviewImg.style, {
     maxWidth: '300px',
-    maxHeight: '90vh',
+    maxHeight: '60vh',
     border: '1px solid #ccc',
     borderRadius: '8px',
   })
@@ -1156,3 +1272,31 @@ onMounted(() => {
   updatePreviews()
 })
 </script>
+<style scoped>
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.page-container {
+  width: 600px; /* Задайте ширину, чтобы обрезать страницы */
+  overflow: hidden;
+}
+
+.page {
+  display: flex;
+  transition: transform 0.1s ease-in-out; /* Добавляем плавную анимацию */
+}
+
+.page-content {
+  width: 600px;
+  height: 400px; /* Задайте высоту страницы */
+  border: 1px solid black;
+  box-sizing: border-box; /* Важно для корректного расчета ширины */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>

@@ -45,7 +45,7 @@ const router = createRouter({
       component: FavoritesView,
     },
     {
-      path: '/pdf',
+      path: '/doc',
       name: 'pdf',
       component: Pdf,
     },
