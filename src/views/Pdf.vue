@@ -52,6 +52,13 @@
             Добавить текст
           </button>
           <div class="border-r border-gray-300"></div>
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="addHeader"
+          >
+            Добавить заголовок
+          </button>
+          <div class="border-r border-gray-300"></div>
           <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none" />
           <button
             class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
@@ -101,6 +108,8 @@ const router = useRouter()
 
 const id_obj = useRoute()['query']['id']
 
+const selectedNode = ref(null)
+
 const stage = ref(null)
 const layer = ref(null)
 const stageContainer = ref(null)
@@ -112,6 +121,153 @@ let leftPreviewContainer, rightPreviewContainer, leftPreviewImg, rightPreviewImg
 var pages = ref([])
 
 var currentPage = ref(0)
+
+const addHeader = () => {
+  // Создаем контейнер панели заголовков
+  const headerPanel = document.createElement('div')
+  Object.assign(headerPanel.style, {
+    position: 'fixed',
+    bottom: '80px', // Располагается немного выше основной панели инструментов
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(255,255,255,0.95)',
+    border: '1px solid #e5e7eb', // светлая рамка
+    padding: '12px 16px',
+    borderRadius: '16px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+    zIndex: '2000',
+    display: 'flex',
+    gap: '16px',
+    alignItems: 'center',
+  })
+
+  // Создаем кнопки для выбора заголовка
+  const btnLarge = document.createElement('button')
+  btnLarge.textContent = 'Большой'
+  const btnMedium = document.createElement('button')
+  btnMedium.textContent = 'Средний'
+  const btnSub = document.createElement('button')
+  btnSub.textContent = 'Подзаголовок'
+
+  // Стили для кнопок (пример, можно доработать через Tailwind классы)
+  ;[btnLarge, btnMedium, btnSub].forEach((btn) => {
+    Object.assign(btn.style, {
+      padding: '8px 12px',
+      fontSize: '16px',
+      borderRadius: '8px',
+      border: '1px solid #d1d5db',
+      background: 'white',
+      cursor: 'pointer',
+      transition: 'transform 0.2s ease, background 0.2s ease',
+    })
+    btn.addEventListener('mouseenter', () => {
+      btn.style.background = '#f3f4f6'
+      btn.style.transform = 'scale(1.05)'
+    })
+    btn.addEventListener('mouseleave', () => {
+      btn.style.background = 'white'
+      btn.style.transform = 'scale(1)'
+    })
+  })
+
+  // Функция для обработки выбора заголовка:
+  const selectHeader = (type) => {
+    // Определяем параметры заголовка в зависимости от типа
+    // Например, позиционирование — заголовок будет расположен сверху по центру,
+    // поэтому x = 0, y = 20, ширина = ширина сцены, align: 'center'
+    const stageWidth = stage.value.width()
+    let params = {
+      x: 0,
+      y: 20, // отступ сверху (можно настроить)
+      fontFamily: 'Arial', // или другой по умолчанию
+      align: 'center',
+      draggable: true,
+    }
+    if (type === 'large') {
+      params.fontSize = 36
+      params.fontStyle = 'bold'
+      params.x = 190
+    } else if (type === 'medium') {
+      params.fontSize = 28
+      params.x = 234
+    } else if (type === 'sub') {
+      params.fontSize = 20
+      params.fontStyle = 'italic'
+      params.y = 400
+      params.x = 234
+    }
+
+    // Вызовем addText с этими параметрами, чтобы создать заголовок на текущей странице:
+    addText(params)
+
+    // Убираем панель
+    document.body.removeChild(headerPanel)
+  }
+
+  // Обработчики кликов для кнопок
+  btnLarge.addEventListener('click', () => {
+    selectHeader('large')
+    document.removeEventListener('mousedown', handleClickOutside)
+  })
+  btnMedium.addEventListener('click', () => {
+    selectHeader('medium')
+    document.removeEventListener('mousedown', handleClickOutside)
+  })
+  btnSub.addEventListener('click', () => {
+    selectHeader('sub')
+    document.removeEventListener('mousedown', handleClickOutside)
+  })
+
+  // Добавляем кнопки в панель
+  headerPanel.appendChild(btnLarge)
+  headerPanel.appendChild(btnMedium)
+  headerPanel.appendChild(btnSub)
+
+  // Добавляем панель в body
+  document.body.appendChild(headerPanel)
+
+  const handleClickOutside = (e) => {
+    if (!headerPanel.contains(e.target)) {
+      document.body.removeChild(headerPanel)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }
+  // Ставим слушатель
+  setTimeout(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+  }, 0)
+}
+
+window.addEventListener('keydown', (e) => {
+  if ((e.key === 'Delete' || e.key === 'Del') && selectedNode.value) {
+    // Если у выбранного узла сохранён transformer, сначала удалим его
+    if (selectedNode.value._transformer) {
+      // Очищаем связи и удаляем transformer
+      selectedNode.value._transformer.nodes([])
+      selectedNode.value._transformer.destroy()
+      selectedNode.value._transformer = null
+    }
+    // Удаляем сам узел
+    selectedNode.value.remove()
+    selectedNode.value = null
+    layer.value.draw()
+  }
+})
+
+const deleteCurrentPage = () => {
+  // Если остается только одна страница - не даем удалить её
+  if (pages.value.length <= 1) {
+    return
+  }
+  // Удаляем страницу из массива
+  pages.value.splice(currentPage.value, 1)
+  // Если удалённая страница была последней, смещаем индекс на предыдущую страницу
+  if (currentPage.value >= pages.value.length) {
+    currentPage.value = pages.value.length - 1
+  }
+  // Загружаем новую текущую страницу
+  loadPage(currentPage.value)
+}
 
 let v = ref()
 let v1 = ref()
@@ -149,12 +305,12 @@ const saveScene = async () => {
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'px',
-    format: [595, 842], // A4 в px при 72 DPI
+    format: 'a4', // Используйте предопределенный формат A4
   })
 
   for (let item = 0; item < pages.value.length; item++) {
     loadPage(item)
-    updatePreviews()
+    await updatePreviews()
 
     if (!stageContainer.value) {
       console.error('Target area not found.')
@@ -166,19 +322,31 @@ const saveScene = async () => {
 
       const canvas = await html2canvas(stageContainer.value, {
         scale: scale,
+        useCORS: true, // Добавляем CORS, если есть изображения с других доменов
       })
 
-      const imgData = canvas.toDataURL('image/png')
+      // Преобразуем холст в Blob
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
 
-      const width = canvas.width / scale
-      const height = canvas.height / scale
+      // Читаем Blob как ArrayBuffer
+      const arrayBuffer = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.readAsArrayBuffer(blob)
+      })
 
-      // Добавляем изображение на текущую страницу
-      pdf.addImage(imgData, 'PNG', 0, 0, width, height)
+      // Преобразуем ArrayBuffer в Uint8Array
+      const uint8Array = new Uint8Array(arrayBuffer)
+
+      const width = pdf.internal.pageSize.getWidth()
+      const height = pdf.internal.pageSize.getHeight()
+
+      // Добавляем изображение на текущую страницу, используя Uint8Array
+      pdf.addImage(uint8Array, 'JPEG', 0, 0, width, height)
 
       // Добавляем новую страницу, если это не последняя
       if (item < pages.value.length - 1) {
-        pdf.addPage([width, height])
+        pdf.addPage()
       }
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -345,7 +513,7 @@ const addText = (data = {}) => {
     x: data.x || stageCenterX,
     y: data.y || stageCenterY,
     rotation: data.rotation || 0,
-    fontSize: data.fontSize || 24,
+    fontSize: data.fontSize || 14,
     fill: data.fill || 'black',
     id: data.id || `text-${Date.now()}`,
     draggable: true,
@@ -386,6 +554,7 @@ const attachTextListeners = (textNode) => {
     // Отмена всплытия, чтобы Transformer не снимался при клике на stage
     e.cancelBubble = true
   })
+  textNode._transformer = transformer
 
   // При клике вне узла снимаем Transformer (если нужно, можно привязать это глобально)
   stage.value.on('click', (e) => {
@@ -395,6 +564,18 @@ const attachTextListeners = (textNode) => {
       layer.value.draw()
     }
   })
+
+  // При клике по тексту:
+  textNode.on('click', (e) => {
+    if (selectedNode.value) selectedNode.value._transformer.nodes([])
+    // Привязываем Transformer, если вы его используете – можно оставить этот код.
+    transformer.nodes([textNode])
+    // Устанавливаем выбранный узел
+    selectedNode.value = textNode
+    layer.value.batchDraw()
+    e.cancelBubble = true
+  })
+
   textNode.on('dblclick', () => {
     // Расположение с учетом абсолютных координат текстового узла
     const absPos = textNode.getAbsolutePosition()
@@ -876,21 +1057,31 @@ const attachImageListeners = (imgNode) => {
     borderDash: [4, 2],
   })
   layer.value.add(transformer)
-
-  // При клике на изображении — привязываем transformer к нему
-  imgNode.on('click', (e) => {
-    transformer.nodes([imgNode])
-    layer.value.batchDraw()
-    e.cancelBubble = true
-  })
+  imgNode._transformer = transformer
+  if (selectedNode.value) selectedNode.value._transformer.nodes([])
+  selectedNode.value = imgNode
 
   // При клике вне изображения снимаем transformer с этого узла
   stage.value.on('click', (e) => {
-    // Если клик не по данному imgNode (или его transformer)
-    if (e.target !== imgNode) {
+    const clickedNode = e.target
+    console.log(selectedNode.value)
+    selectedNode.value._transformer.nodes([])
+    const currentNodes = transformer.nodes()
+
+    // Если кликнутый узел не входит в список активных узлов
+    if (!currentNodes.includes(clickedNode)) {
       transformer.nodes([])
       layer.value.batchDraw()
     }
+  })
+
+  imgNode.on('click', (e) => {
+    if (selectedNode.value) selectedNode.value._transformer.nodes([])
+    transformer.nodes([imgNode])
+    selectedNode.value = imgNode
+    console.log(selectedNode)
+    layer.value.batchDraw()
+    e.cancelBubble = true
   })
 }
 
@@ -917,46 +1108,35 @@ const addImage = async () => {
     reader.onload = (e) => {
       const imageObj = new Image()
       imageObj.onload = () => {
+        const container = stageContainer.value // Убедись, что у тебя есть такой ref
+        const containerWidth = container.clientWidth
+        const containerHeight = container.clientHeight
+
+        const maxWidth = containerWidth * 0.9
+        const maxHeight = containerHeight * 0.9
+
+        const originalWidth = imageObj.width
+        const originalHeight = imageObj.height
+
+        const scaleX = maxWidth / originalWidth
+        const scaleY = maxHeight / originalHeight
+        const scale = Math.min(1, scaleX, scaleY)
+
+        const newWidth = originalWidth * scale
+        const newHeight = originalHeight * scale
         const img = new Konva.Image({
-          x: 100,
+          x: 0,
           y: 100,
           image: imageObj,
           draggable: true,
+          width: newWidth,
+          height: newHeight,
         })
         layer.value.add(img)
         img.setAttr('src', imageObj.src)
         layer.value.draw()
 
-        const transformer = new Konva.Transformer({
-          node: img,
-          enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-          // Если нужно сохранять пропорции, установите:
-          keepRatio: true,
-          // Можно настроить стиль якорей
-          anchorStroke: 'blue',
-          anchorFill: 'white',
-          anchorCornerRadius: 4,
-          anchorSize: 10,
-          borderStroke: 'blue',
-          borderDash: [4, 2],
-        })
-        layer.value.add(transformer)
-        layer.value.draw()
-
-        // Чтобы Transformer появлялся по клику на изображение:
-        img.on('click', (e) => {
-          transformer.nodes([img])
-          layer.value.draw()
-          e.cancelBubble = true
-        })
-
-        // При клике вне изображения отключать Transformer:
-        stage.value.on('click', (e) => {
-          if (e.target !== img) {
-            transformer.nodes([])
-            layer.value.draw()
-          }
-        })
+        attachImageListeners(img)
       }
       imageObj.src = e.target.result // Data URL - ПРАВИЛЬНОЕ МЕСТО
     }
