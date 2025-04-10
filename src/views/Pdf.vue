@@ -81,6 +81,14 @@
             +
           </button>
           <div class="border-r border-gray-300"></div>
+
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="deleteCurrentPage()"
+          >
+            Удалить
+          </button>
+          <div class="border-r border-gray-300"></div>
           <button
             style="font-size: 1.7vw"
             class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
@@ -307,6 +315,16 @@ const saveScene = async () => {
     unit: 'px',
     format: [595, 842], // A4 в px при 72 DPI
   })
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
 
   for (let item = 0; item < pages.value.length; item++) {
     loadPage(item)
@@ -339,6 +357,7 @@ const saveScene = async () => {
     } catch (error) {
       console.error('Error generating PDF:', error)
     }
+    nextPage()
   }
 
   pdf.save('area.pdf')
