@@ -114,7 +114,7 @@ const fetchDataI = async () => {
 async function NewRoute() {
   try {
     const newid = await api.post(`objects/create`, { title: 'Новый проект' })
-    router.push(`/create_doc?id=${newid}`)
+    router.push(`/doc?id=${newid}`)
   } catch (err) {
     console.log(err)
   }
@@ -149,7 +149,7 @@ const handleFileUpload = async (event) => {
         encodeURIComponent(image).replace('(', '%28').replace(')', '%29')
 
       const prof = await api.post(`auth/update`, {
-        avatar: imageUrl.value
+        avatar: imageUrl.value,
       })
       router.go(0)
     } catch (err) {
@@ -287,7 +287,7 @@ const handleFileUpload = async (event) => {
               <div class="text-white flex place-content-around">
                 <div v-for="item in favoritescards.array.slice(0, 3)" :key="item.id">
                   <div class="hover:scale-105" style="transition: 0.1s ease">
-                    <router-link :to="{ path: '/create_route', query: { id: item.main_route_id } }">
+                    <router-link :to="{ path: '/doc', query: { id: item.main_object_id } }">
                       <Card
                         :card="item"
                         :size="1"
@@ -329,7 +329,7 @@ const handleFileUpload = async (event) => {
             margin-top: 1vw;
           "
         >
-          <div class="text-white flex place-content-center">
+          <div class="text-white flex place-content-left flex-wrap gap-9">
             <Card
               @click="NewRoute"
               :card="{ title: 'nananani' }"
@@ -339,7 +339,7 @@ const handleFileUpload = async (event) => {
             ></Card>
             <div v-for="item in selfcards.array" :key="item.id">
               <div class="hover:scale-105" style="transition: 0.1s ease">
-                <router-link :to="{ path: '/create_route', query: { id: item.main_route_id } }">
+                <router-link :to="{ path: '/doc', query: { id: item.main_object_id } }">
                   <Card
                     :card="item"
                     :size="2"

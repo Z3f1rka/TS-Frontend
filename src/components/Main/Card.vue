@@ -36,7 +36,7 @@ const handleMouseLeave = () => {
     <div v-if="data.size != 1">
       <img
         v-if="data.card.file != undefined && data.card.file != null && data.card.file != ''"
-        :src="api + 'files/download/' + data.card.file"
+        src="/fileS.jpg"
         class="w-full h-full object-cover"
       />
     </div>
@@ -47,7 +47,7 @@ const handleMouseLeave = () => {
           data.card.object.file != null &&
           data.card.object.file != ''
         "
-        :src="api + 'files/download/' + data.card.object.file"
+        src="/fileS.jpg"
         class="w-full h-full object-cover"
       />
     </div>
@@ -58,7 +58,7 @@ const handleMouseLeave = () => {
         data.card.file === ''
       "
     >
-      <img src="/background3.png" class="w-full h-full object-cover" />
+      <img src="/fileS.jpg" class="w-full h-full object-cover" />
     </div>
     <div v-if="data.size === 3">
       <img src="/what.png" class="w-full h-full object-cover" />
