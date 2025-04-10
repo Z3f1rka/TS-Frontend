@@ -307,6 +307,16 @@ const saveScene = async () => {
     unit: 'px',
     format: [595, 842], // A4 в px при 72 DPI
   })
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
+  prevPage()
 
   for (let item = 0; item < pages.value.length; item++) {
     loadPage(item)
@@ -339,6 +349,7 @@ const saveScene = async () => {
     } catch (error) {
       console.error('Error generating PDF:', error)
     }
+    nextPage()
   }
 
   pdf.save('area.pdf')
