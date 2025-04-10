@@ -146,29 +146,46 @@ const goBack = () => {
   router.go(-1)
 }
 const saveScene = async () => {
-  if (!stageContainer.value) {
-    console.error('Target area not found.')
-    return
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'px',
+    format: [595, 842], // A4 в px при 72 DPI
+  })
+
+  for (let item = 0; item < pages.value.length; item++) {
+    loadPage(item)
+    updatePreviews()
+
+    if (!stageContainer.value) {
+      console.error('Target area not found.')
+      return
+    }
+
+    try {
+      const scale = 2
+
+      const canvas = await html2canvas(stageContainer.value, {
+        scale: scale,
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+
+      const width = canvas.width / scale
+      const height = canvas.height / scale
+
+      // Добавляем изображение на текущую страницу
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height)
+
+      // Добавляем новую страницу, если это не последняя
+      if (item < pages.value.length - 1) {
+        pdf.addPage([width, height])
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+    }
   }
-  try {
-    const scale = 2
 
-    const canvas = await html2canvas(stageContainer.value, {
-      scale: scale,
-    })
-
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'px',
-      format: [canvas.width / scale, canvas.height / scale],
-    })
-
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / scale, canvas.height / scale)
-    pdf.save('area.pdf')
-  } catch (error) {
-    console.error('Error generating PDF:', error)
-  }
+  pdf.save('area.pdf')
 }
 
 const saveCurrentPage = () => {
