@@ -305,12 +305,12 @@ const saveScene = async () => {
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'px',
-    format: 'a4', // Используйте предопределенный формат A4
+    format: [595, 842], // A4 в px при 72 DPI
   })
 
   for (let item = 0; item < pages.value.length; item++) {
     loadPage(item)
-    await updatePreviews()
+    updatePreviews()
 
     if (!stageContainer.value) {
       console.error('Target area not found.')
@@ -322,31 +322,19 @@ const saveScene = async () => {
 
       const canvas = await html2canvas(stageContainer.value, {
         scale: scale,
-        useCORS: true, // Добавляем CORS, если есть изображения с других доменов
       })
 
-      // Преобразуем холст в Blob
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+      const imgData = canvas.toDataURL('image/png')
 
-      // Читаем Blob как ArrayBuffer
-      const arrayBuffer = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.readAsArrayBuffer(blob)
-      })
+      const width = canvas.width / scale
+      const height = canvas.height / scale
 
-      // Преобразуем ArrayBuffer в Uint8Array
-      const uint8Array = new Uint8Array(arrayBuffer)
-
-      const width = pdf.internal.pageSize.getWidth()
-      const height = pdf.internal.pageSize.getHeight()
-
-      // Добавляем изображение на текущую страницу, используя Uint8Array
-      pdf.addImage(uint8Array, 'JPEG', 0, 0, width, height)
+      // Добавляем изображение на текущую страницу
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height)
 
       // Добавляем новую страницу, если это не последняя
       if (item < pages.value.length - 1) {
-        pdf.addPage()
+        pdf.addPage([width, height])
       }
     } catch (error) {
       console.error('Error generating PDF:', error)
