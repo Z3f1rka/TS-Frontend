@@ -31,6 +31,11 @@
         >
           +
         </button>
+        <button 
+  class="absolute right-4 bottom-24 bg-red-500 text-white hover:bg-red-600 rounded-full w-16 h-16 text-4xl flex items-center justify-center focus:outline-none"
+  @click="deleteCurrentPage">
+  &times;
+</button>
       </div>
 
       <!-- Нижняя панель инструментов -->
@@ -224,6 +229,21 @@ window.addEventListener('keydown', (e) => {
     layer.value.draw()
   }
 })
+
+const deleteCurrentPage = () => {
+  // Если остается только одна страница - не даем удалить её
+  if (pages.value.length <= 1) {
+    return;
+  }
+  // Удаляем страницу из массива
+  pages.value.splice(currentPage.value, 1);
+  // Если удалённая страница была последней, смещаем индекс на предыдущую страницу
+  if (currentPage.value >= pages.value.length) {
+    currentPage.value = pages.value.length - 1;
+  }
+  // Загружаем новую текущую страницу
+  loadPage(currentPage.value);
+};
 
 const saveScene = async () => {
   if (!stageContainer.value) {
