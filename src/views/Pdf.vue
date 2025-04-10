@@ -81,6 +81,14 @@
             +
           </button>
           <div class="border-r border-gray-300"></div>
+
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="deleteCurrentPage()"
+          >
+            Удалить
+          </button>
+          <div class="border-r border-gray-300"></div>
           <button
             style="font-size: 1.7vw"
             class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
