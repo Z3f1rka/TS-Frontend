@@ -43,6 +43,13 @@
             Добавить текст
           </button>
           <div class="border-r border-gray-300"></div>
+          <button
+            class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
+            @click="addHeader"
+          >
+            Добавить заголовок
+          </button>
+          <div class="border-r border-gray-300"></div>
           <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none" />
           <button
             class="tool-btn text-gray-700 hover:text-black transform hover:scale-105 transition-all"
@@ -85,6 +92,122 @@ let leftPreviewContainer, rightPreviewContainer, leftPreviewImg, rightPreviewImg
 var pages = ref([])
 
 var currentPage = ref(0)
+
+const addHeader = () => {
+  // Создаем контейнер панели заголовков
+  const headerPanel = document.createElement('div')
+  Object.assign(headerPanel.style, {
+    position: 'fixed',
+    bottom: '80px', // Располагается немного выше основной панели инструментов
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(255,255,255,0.95)',
+    border: '1px solid #e5e7eb', // светлая рамка
+    padding: '12px 16px',
+    borderRadius: '16px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+    zIndex: '2000',
+    display: 'flex',
+    gap: '16px',
+    alignItems: 'center',
+  })
+
+  // Создаем кнопки для выбора заголовка
+  const btnLarge = document.createElement('button')
+  btnLarge.textContent = 'Большой'
+  const btnMedium = document.createElement('button')
+  btnMedium.textContent = 'Средний'
+  const btnSub = document.createElement('button')
+  btnSub.textContent = 'Подзаголовок'
+
+  // Стили для кнопок (пример, можно доработать через Tailwind классы)
+  ;[btnLarge, btnMedium, btnSub].forEach((btn) => {
+    Object.assign(btn.style, {
+      padding: '8px 12px',
+      fontSize: '16px',
+      borderRadius: '8px',
+      border: '1px solid #d1d5db',
+      background: 'white',
+      cursor: 'pointer',
+      transition: 'transform 0.2s ease, background 0.2s ease',
+    })
+    btn.addEventListener('mouseenter', () => {
+      btn.style.background = '#f3f4f6'
+      btn.style.transform = 'scale(1.05)'
+    })
+    btn.addEventListener('mouseleave', () => {
+      btn.style.background = 'white'
+      btn.style.transform = 'scale(1)'
+    })
+  })
+
+  // Функция для обработки выбора заголовка:
+  const selectHeader = (type) => {
+    // Определяем параметры заголовка в зависимости от типа
+    // Например, позиционирование — заголовок будет расположен сверху по центру,
+    // поэтому x = 0, y = 20, ширина = ширина сцены, align: 'center'
+    const stageWidth = stage.value.width()
+    let params = {
+      x: 0,
+      y: 20, // отступ сверху (можно настроить)
+      fontFamily: 'Arial', // или другой по умолчанию
+      align: 'center',
+      draggable: true,
+    }
+    if (type === 'large') {
+      params.fontSize = 36
+      params.fontStyle = 'bold'
+      params.x = 190
+    } else if (type === 'medium') {
+      params.fontSize = 28
+      params.x = 234
+    } else if (type === 'sub') {
+      params.fontSize = 20
+      params.fontStyle = 'italic'
+      params.y = 400
+      params.x = 234
+    }
+
+    // Вызовем addText с этими параметрами, чтобы создать заголовок на текущей странице:
+    addText(params)
+
+    // Убираем панель
+    document.body.removeChild(headerPanel)
+  }
+
+  // Обработчики кликов для кнопок
+  btnLarge.addEventListener('click', () => {
+    selectHeader('large')
+    document.removeEventListener('mousedown', handleClickOutside)
+  })
+  btnMedium.addEventListener('click', () => {
+    selectHeader('medium')
+    document.removeEventListener('mousedown', handleClickOutside)
+  })
+  btnSub.addEventListener('click', () => {
+    selectHeader('sub')
+    document.removeEventListener('mousedown', handleClickOutside)
+  })
+
+  // Добавляем кнопки в панель
+  headerPanel.appendChild(btnLarge)
+  headerPanel.appendChild(btnMedium)
+  headerPanel.appendChild(btnSub)
+
+  // Добавляем панель в body
+  document.body.appendChild(headerPanel)
+
+  const handleClickOutside = (e) => {
+    if (!headerPanel.contains(e.target)) {
+      document.body.removeChild(headerPanel)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }
+  // Ставим слушатель
+  setTimeout(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+  }, 0)
+}
 
 window.addEventListener('keydown', (e) => {
   if ((e.key === 'Delete' || e.key === 'Del') && selectedNode.value) {
@@ -243,7 +366,7 @@ const addText = (data = {}) => {
     x: data.x || stageCenterX,
     y: data.y || stageCenterY,
     rotation: data.rotation || 0,
-    fontSize: data.fontSize || 24,
+    fontSize: data.fontSize || 14,
     fill: data.fill || 'black',
     id: data.id || `text-${Date.now()}`,
     draggable: true,
@@ -284,7 +407,6 @@ const attachTextListeners = (textNode) => {
     // Отмена всплытия, чтобы Transformer не снимался при клике на stage
     e.cancelBubble = true
   })
-  selectedNode.value = textNode
   textNode._transformer = transformer
 
   // При клике вне узла снимаем Transformer (если нужно, можно привязать это глобально)
@@ -298,7 +420,7 @@ const attachTextListeners = (textNode) => {
 
   // При клике по тексту:
   textNode.on('click', (e) => {
-    selectedNode.value._transformer.nodes([])
+    if (selectedNode.value) selectedNode.value._transformer.nodes([])
     // Привязываем Transformer, если вы его используете – можно оставить этот код.
     transformer.nodes([textNode])
     // Устанавливаем выбранный узел
@@ -789,25 +911,25 @@ const attachImageListeners = (imgNode) => {
   })
   layer.value.add(transformer)
   imgNode._transformer = transformer
-  selectedNode.value._transformer.nodes([])
+  if (selectedNode.value) selectedNode.value._transformer.nodes([])
   selectedNode.value = imgNode
 
   // При клике вне изображения снимаем transformer с этого узла
   stage.value.on('click', (e) => {
-    const clickedNode = e.target;
+    const clickedNode = e.target
     console.log(selectedNode.value)
-  selectedNode.value._transformer.nodes([])
-  const currentNodes = transformer.nodes();
+    selectedNode.value._transformer.nodes([])
+    const currentNodes = transformer.nodes()
 
-  // Если кликнутый узел не входит в список активных узлов
-  if (!currentNodes.includes(clickedNode)) {
+    // Если кликнутый узел не входит в список активных узлов
+    if (!currentNodes.includes(clickedNode)) {
       transformer.nodes([])
       layer.value.batchDraw()
     }
   })
 
   imgNode.on('click', (e) => {
-    selectedNode.value._transformer.nodes([])
+    if (selectedNode.value) selectedNode.value._transformer.nodes([])
     transformer.nodes([imgNode])
     selectedNode.value = imgNode
     console.log(selectedNode)
